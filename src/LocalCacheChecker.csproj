@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!--<PublishAot>true</PublishAot>-->
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <OpenApiReference Include="anilibria-api-v1-docs.json" SourceUrl="https://next.anilibria.top/storage/api/docs/v1/anilibria-api-v1-docs.json" />
+  </ItemGroup>
+</Project>
