@@ -22,6 +22,10 @@
 
         public int? AverageDurationOfEpisode { get; init; } = null;
 
+        public bool IsInProduction { get; init; }
+
+        public string? Notification { get; set; }
+
         public ReleaseDataTypeModel Type { get; init; } = new ReleaseDataTypeModel ();
 
         public ReleaseDataNameModel Name { get; init; } = new ReleaseDataNameModel ();

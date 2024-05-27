@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using LocalCacheChecker;
+using System.Text.Json;
 
 namespace AnilibriaAPIClient {
 
@@ -58,6 +59,22 @@ namespace AnilibriaAPIClient {
 
             var content = JsonSerializer.Deserialize<IEnumerable<ScheduleReleaseModel>> ( jsonContent, serializeOptions );
             return content == null ? throw new Exception ( $"Can't serialize response for schedule" ) : content;
+        }
+
+        static public async Task<IEnumerable<StringValueItem>> GetAgeRatings ( HttpClient httpClient ) {
+            return await PerformRequest<IEnumerable<StringValueItem>> ( httpClient, $"{m_apiDomain}/api/v1/anime/catalog/references/age-ratings", "age ratings" );
+        }
+
+        static public async Task<IEnumerable<IntegerValueItem>> GetGenres ( HttpClient httpClient ) {
+            return await PerformRequest<IEnumerable<IntegerValueItem>> ( httpClient, $"{m_apiDomain}/api/v1/anime/catalog/references/genres", "genres" );
+        }
+
+        static public async Task<IEnumerable<StringValueItem>> GetSeasons ( HttpClient httpClient ) {
+            return await PerformRequest<IEnumerable<StringValueItem>> ( httpClient, $"{m_apiDomain}/api/v1/anime/catalog/references/seasons", "seasons" );
+        }
+
+        static public async Task<IEnumerable<StringValueItem>> GetTypes ( HttpClient httpClient ) {
+            return await PerformRequest<IEnumerable<StringValueItem>> ( httpClient, $"{m_apiDomain}/api/v1/anime/catalog/references/types", "types" );
         }
 
         static public async Task<IEnumerable<FranchiseModel>> GetAllFranchises ( HttpClient httpClient ) {

@@ -6,6 +6,12 @@
     <Nullable>enable</Nullable>
     <!--<PublishAot>true</PublishAot>-->
     <InvariantGlobalization>true</InvariantGlobalization>
+    <Title>Local cache checker</Title>
+    <Description>Console application for make requests to AL API and save reslut to local cache</Description>
+    <RepositoryUrl>https://github.com/trueromanus/LocalCacheChecker</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>anime</PackageTags>
+    <Version>1.0.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <OpenApiReference Include="anilibria-api-v1-docs.json" SourceUrl="https://next.anilibria.top/storage/api/docs/v1/anilibria-api-v1-docs.json" />
