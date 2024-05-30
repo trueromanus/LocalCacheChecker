@@ -38,27 +38,7 @@ namespace AnilibriaAPIClient {
         }
 
         static public async Task<IEnumerable<ScheduleReleaseModel>> GetFullSchedule ( HttpClient httpClient ) {
-            var serializeOptions = new JsonSerializerOptions {
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-            };
-            HttpResponseMessage pageContent;
-            try {
-                pageContent = await httpClient.GetAsync ( $"{m_apiDomain}/api/v1/anime/schedule/week" );
-            } catch ( Exception ex ) {
-                throw new Exception ( $"Can't make HTTP request for get schedule", ex );
-            }
-            if ( pageContent == null ) throw new Exception ( $"Can't read content for get schedule" );
-
-            string jsonContent;
-            try {
-                jsonContent = await pageContent.Content.ReadAsStringAsync ();
-            } catch ( Exception ex ) {
-                throw new Exception ( $"Can't read content for get schedule", ex );
-            }
-            if ( string.IsNullOrEmpty ( jsonContent ) ) throw new Exception ( $"JSON content for schedule is empty!" );
-
-            var content = JsonSerializer.Deserialize<IEnumerable<ScheduleReleaseModel>> ( jsonContent, serializeOptions );
-            return content == null ? throw new Exception ( $"Can't serialize response for schedule" ) : content;
+            return await PerformRequest<IEnumerable<ScheduleReleaseModel>> ( httpClient, $"{m_apiDomain}/api/v1/anime/schedule/week", "schedule" );
         }
 
         static public async Task<IEnumerable<StringValueItem>> GetAgeRatings ( HttpClient httpClient ) {

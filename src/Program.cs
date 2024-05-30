@@ -59,6 +59,16 @@ static async Task SaveTypes ( HttpClient httpClient, string folderToSaveCacheFil
 }
 if ( synchronizeTypes ) await SaveTypes ( httpClient, folderToSaveCacheFiles );
 
+static string SerializeToJson<T> ( T model ) {
+    return JsonSerializer.Serialize<T> (
+        model,
+        new JsonSerializerOptions {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
+        }
+    );
+}
+
 static async Task SaveReleases ( HttpClient httpClient, bool synchronizeFullReleases, string folderToSaveCacheFiles ) {
     Console.WriteLine ( "Start synchronized releases..." );
 
@@ -99,18 +109,13 @@ static async Task SaveReleases ( HttpClient httpClient, bool synchronizeFullRele
             await MapPageReleases ( httpClient, firstPage, result, resultTorrents, types );
         }
 
-        var jsonContent = JsonSerializer.Serialize<IEnumerable<ReleaseSaveModel>> (
-            result,
-            new JsonSerializerOptions {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true
-            }
-        );
-
         var path = Path.Combine ( folderToSaveCacheFiles, "releases.cache" );
-        Console.WriteLine ( $"Saving to file {Path.GetFullPath ( path )} items" );
+        Console.WriteLine ( $"Saving releases to file {Path.GetFullPath ( path )} items" );
+        await File.WriteAllTextAsync ( path, SerializeToJson ( result ) );
 
-        await File.WriteAllTextAsync ( path, jsonContent );
+        var torrentPath = Path.Combine ( folderToSaveCacheFiles, "torrents.cache" );
+        Console.WriteLine ( $"Saving torrents to file {Path.GetFullPath ( torrentPath )} items" );
+        await File.WriteAllTextAsync ( torrentPath, SerializeToJson ( resultTorrents ) );
     } else {
         Console.WriteLine ( "Sorry synchronize releases partly no implement yet :(" );
         return;
@@ -189,7 +194,7 @@ static async Task SaveReleases ( HttpClient httpClient, bool synchronizeFullRele
 }
 if ( synchronizeReleases ) await SaveReleases ( httpClient, synchronizeFullReleases, folderToSaveCacheFiles );
 
-static async Task SaveSchedule ( HttpClient httpClient ) {
+static async Task SaveSchedule ( HttpClient httpClient, string folderToSaveCacheFiles ) {
     Console.WriteLine ( "Start synchronized schedule..." );
 
     var scheduleData = await RequestMaker.GetFullSchedule ( httpClient );
@@ -207,15 +212,16 @@ static async Task SaveSchedule ( HttpClient httpClient ) {
 
     var jsonContent = JsonSerializer.Serialize<Dictionary<string, int>> ( result );
 
-    Console.WriteLine ( $"Saving to file {Path.GetFullPath ( "schedule.cache" )} items" );
+    var path = Path.Combine ( folderToSaveCacheFiles, "schedule.cache" );
+    Console.WriteLine ( $"Saving to file {Path.GetFullPath ( path )} items" );
 
-    await File.WriteAllTextAsync ( "schedule.cache", jsonContent );
+    await File.WriteAllTextAsync ( path, jsonContent );
 
     Console.WriteLine ( $"Schedule saved!" );
 }
-if ( synchronizeSchedule ) await SaveSchedule ( httpClient );
+if ( synchronizeSchedule ) await SaveSchedule ( httpClient, folderToSaveCacheFiles );
 
-static async Task SaveReleaseSeries ( HttpClient httpClient ) {
+static async Task SaveReleaseSeries ( HttpClient httpClient, string folderToSaveCacheFiles ) {
     Console.WriteLine ( "Start synchronized franchises..." );
     var franchises = await RequestMaker.GetAllFranchises ( httpClient );
 
@@ -239,33 +245,11 @@ static async Task SaveReleaseSeries ( HttpClient httpClient ) {
         result.Add ( model );
     }
 
-    var jsonContent = JsonSerializer.Serialize (
-        result,
-        new JsonSerializerOptions {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true
-        }
-    );
+    var path = Path.Combine ( folderToSaveCacheFiles, "releaseseries.cache" );
+    Console.WriteLine ( $"Saving to file {Path.GetFullPath ( path )} items" );
 
-    Console.WriteLine ( $"Saving to file {Path.GetFullPath ( "releaseseries.cache" )} items" );
-
-    await File.WriteAllTextAsync ( "releaseseries.cache", jsonContent );
+    await File.WriteAllTextAsync ( path, SerializeToJson ( result ) );
 
     Console.WriteLine ( $"Franchises saved!" );
 }
-if ( synchronizeFranchises ) await SaveReleaseSeries ( httpClient );
-
-//collections
-//FAVORITES
-//PLANNED
-//WATCHED
-//WATCHING
-/*
-const PLANNED = 'PLANNED';
-    const WATCHED = 'WATCHED';
-    const WATCHING = 'WATCHING';
-    const FAVORITES = 'FAVORITES';
-    const POSTPONED = 'POSTPONED';
-    const ABANDONED = 'ABANDONED';
-*/
-
+if ( synchronizeFranchises ) await SaveReleaseSeries ( httpClient, folderToSaveCacheFiles );
