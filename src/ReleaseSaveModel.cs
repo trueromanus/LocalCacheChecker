@@ -36,7 +36,9 @@
 
         public string Voices { get; init; } = "";  // need to remake on int
 
-        public int Year { get; init; } // changed to int!
+        public string Year { get; init; } = "";
+
+        public int YearInt { get; init; }
 
         public bool IsOngoing { get; init; }
 

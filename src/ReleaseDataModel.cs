@@ -22,6 +22,8 @@
 
         public int? AverageDurationOfEpisode { get; init; } = null;
 
+        public int? AddedInUsersFavorites { get; init; } = null;
+
         public bool IsInProduction { get; init; }
 
         public string? Notification { get; set; }
