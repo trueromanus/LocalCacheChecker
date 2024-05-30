@@ -65,6 +65,10 @@ namespace AnilibriaAPIClient {
             return await PerformRequest<FranchiseReleasesModel> ( httpClient, $"{m_apiDomain}/api/v1/anime/franchises/" + id, "franchise releases" );
         }
 
+        static public async Task<ReleaseOnlyEpisodesModel> GetReleaseWithEpisodes ( HttpClient httpClient, int releaseId ) {
+            return await PerformRequest<ReleaseOnlyEpisodesModel> ( httpClient, $"{m_apiDomain}/api/v1/anime/releases/{releaseId}", "release with episodes" );
+        }
+
         static public async Task<IEnumerable<ReleaseTorrentModel>> GetTorrentsForRelease ( HttpClient httpClient, int releaseId ) {
             return await PerformRequest<IEnumerable<ReleaseTorrentModel>> ( httpClient, $"{m_apiDomain}/api/v1/anime/torrents/release/{releaseId}", "torrent for release" );
         }
