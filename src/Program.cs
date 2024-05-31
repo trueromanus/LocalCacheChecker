@@ -119,14 +119,16 @@ internal class Program {
         Console.WriteLine ( $"Franchises saved!" );
     }
 
-    static async Task SaveEpisodesAsFewFiles(string folderToSaveCacheFiles, List<ReleaseSaveEpisodeModel> allEpisodes) {
+    static async Task<int> SaveEpisodesAsFewFiles ( string folderToSaveCacheFiles, List<ReleaseSaveEpisodeModel> allEpisodes ) {
         var partsCount = allEpisodes.Count () / 300;
         for ( var i = 0; i < partsCount; i++ ) {
             var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}.cache" );
             Console.WriteLine ( $"Saving episodes to file {Path.GetFullPath ( episodesPath )} items" );
 
-            await File.WriteAllTextAsync ( episodesPath, SerializeToJson ( allEpisodes.Skip(i * 300).Take(300) ) );
+            await File.WriteAllTextAsync ( episodesPath, SerializeToJson ( allEpisodes.Skip ( i * 300 ).Take ( 300 ).ToList () ) );
         }
+
+        return partsCount;
     }
 
     static async Task SaveReleases ( HttpClient httpClient, bool synchronizeFullReleases, string folderToSaveCacheFiles ) {
@@ -161,7 +163,7 @@ internal class Program {
                 Console.WriteLine ( "Load page: " + i );
 
                 var pageData = await RequestMaker.GetPage ( i, httpClient );
-                await MapPageReleases ( httpClient, firstPage, result, resultTorrents, types, resultVideos );
+                await MapPageReleases ( httpClient, pageData, result, resultTorrents, types, resultVideos );
             }
 
             var path = Path.Combine ( folderToSaveCacheFiles, "releases.cache" );
@@ -172,7 +174,19 @@ internal class Program {
             Console.WriteLine ( $"Saving torrents to file {Path.GetFullPath ( torrentPath )} items" );
             await File.WriteAllTextAsync ( torrentPath, SerializeToJson ( resultTorrents ) );
 
-            await SaveEpisodesAsFewFiles ( folderToSaveCacheFiles, resultVideos );
+            var countEpisodeFiles = await SaveEpisodesAsFewFiles ( folderToSaveCacheFiles, resultVideos );
+
+            var metadataPath = Path.Combine ( folderToSaveCacheFiles, "metadata" );
+            Console.WriteLine ( $"Saving metadata to file {Path.GetFullPath ( metadataPath )} items" );
+            await File.WriteAllTextAsync (
+                metadataPath,
+                SerializeToJson (
+                    new MetadataModel {
+                        LastReleaseTimeStamp = DateTimeOffset.Parse ( firstPage.Data.First ().FreshAt ).ToUnixTimeSeconds (),
+                        CountEpisodes = countEpisodeFiles
+                    }
+                )
+            );
         } else {
             Console.WriteLine ( "Sorry synchronize releases partly not implement yet :(" );
             return;
@@ -216,6 +230,16 @@ internal class Program {
             result.AddRange ( MapForSave ( model.Data, relatedStuff, types ) );
         }
 
+        static long ParseDateTimeOffset ( string value ) {
+            if ( string.IsNullOrEmpty ( value ) ) return 0;
+
+            try {
+                return DateTimeOffset.Parse ( value ).ToUnixTimeSeconds ();
+            } catch {
+                return 0;
+            }
+        }
+
         static IEnumerable<ReleaseSaveModel> MapForSave ( IEnumerable<ReleaseDataModel> items, IEnumerable<(int releaseId, IEnumerable<ReleaseTorrentModel> torrents, IEnumerable<ReleaseMemberModel> members, IEnumerable<ReleaseEpisodeModel> episodes)> relatedStuff, TypesResultModel types ) {
             var result = new List<ReleaseSaveModel> ();
             foreach ( var item in items ) {
@@ -228,7 +252,7 @@ internal class Program {
                         CountVideos = episodes?.Count () ?? 0,
                         CountTorrents = torrents?.Count () ?? 0,
                         Description = item.Description,
-                        Timestamp = DateTimeOffset.Parse ( item.FreshAt ).ToUnixTimeSeconds (),
+                        Timestamp = ParseDateTimeOffset ( item.FreshAt ),
                         OriginalName = item.Name.English,
                         Title = item.Name.Main,
                         Rating = item.AddedInUsersFavorites ?? 0,
@@ -286,6 +310,7 @@ internal class Program {
         string folderToSaveCacheFiles = "";
 
         var httpClient = new HttpClient ();
+        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd ( "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0 LocalCacheChecker/1.0" );
 
         if ( synchronizeTypes ) await SaveTypes ( httpClient, folderToSaveCacheFiles );
         if ( synchronizeReleases ) await SaveReleases ( httpClient, synchronizeFullReleases, folderToSaveCacheFiles );

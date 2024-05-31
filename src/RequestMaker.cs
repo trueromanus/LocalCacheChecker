@@ -9,7 +9,7 @@ namespace AnilibriaAPIClient {
 
         static public async Task<ReleasesModel> GetPage ( int page, HttpClient httpClient ) {
             var dictionary = new Dictionary<string, string> ();
-            dictionary["page"] = "1";
+            dictionary["page"] = page.ToString();
             dictionary["limit"] = "50";
             dictionary["f[sorting]"] = "FRESH_AT_DESC";
 
@@ -70,13 +70,6 @@ namespace AnilibriaAPIClient {
             return await PerformRequest<ReleaseOnlyCollectionsModel> ( httpClient, $"{m_apiDomain}/api/v1/anime/releases/{releaseId}", "release with episodes" );
         }
 
-        static public async Task<IEnumerable<ReleaseTorrentModel>> GetTorrentsForRelease ( HttpClient httpClient, int releaseId ) {
-            return await PerformRequest<IEnumerable<ReleaseTorrentModel>> ( httpClient, $"{m_apiDomain}/api/v1/anime/torrents/release/{releaseId}", "torrent for release" );
-        }
-
-        static public async Task<IEnumerable<ReleaseMemberModel>> GetTeamForRelease ( HttpClient httpClient, int releaseId ) {
-            return await PerformRequest<IEnumerable<ReleaseMemberModel>> ( httpClient, $"{m_apiDomain}/api/v1/anime/releases/{releaseId}/members", "members for release" );
-        }
 
         private static async Task<T> PerformRequest<T> ( HttpClient httpClient, string url, string requestName ) {
             var serializeOptions = new JsonSerializerOptions {
