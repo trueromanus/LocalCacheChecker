@@ -38,8 +38,6 @@
 
         public string Year { get; init; } = "";
 
-        public int YearInt { get; init; }
-
         public bool IsOngoing { get; init; }
 
         public string AgeRating { get; init; } = "";

@@ -11,6 +11,7 @@ namespace AnilibriaAPIClient {
             var dictionary = new Dictionary<string, string> ();
             dictionary["page"] = "1";
             dictionary["limit"] = "50";
+            dictionary["f[sorting]"] = "FRESH_AT_DESC";
 
             var serializeOptions = new JsonSerializerOptions {
                 PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
@@ -65,8 +66,8 @@ namespace AnilibriaAPIClient {
             return await PerformRequest<FranchiseReleasesModel> ( httpClient, $"{m_apiDomain}/api/v1/anime/franchises/" + id, "franchise releases" );
         }
 
-        static public async Task<ReleaseOnlyEpisodesModel> GetReleaseWithEpisodes ( HttpClient httpClient, int releaseId ) {
-            return await PerformRequest<ReleaseOnlyEpisodesModel> ( httpClient, $"{m_apiDomain}/api/v1/anime/releases/{releaseId}", "release with episodes" );
+        static public async Task<ReleaseOnlyCollectionsModel> GetReleaseInnerCollections ( HttpClient httpClient, int releaseId ) {
+            return await PerformRequest<ReleaseOnlyCollectionsModel> ( httpClient, $"{m_apiDomain}/api/v1/anime/releases/{releaseId}", "release with episodes" );
         }
 
         static public async Task<IEnumerable<ReleaseTorrentModel>> GetTorrentsForRelease ( HttpClient httpClient, int releaseId ) {
@@ -85,7 +86,7 @@ namespace AnilibriaAPIClient {
             try {
                 pageContent = await httpClient.GetAsync ( url );
             } catch ( Exception ex ) {
-                throw new Exception ( $"Can't make HTTP request for {requestName}", ex );
+                throw new Exception ( $"Can't make HTTP request for {requestName} ({url})", ex );
             }
             if ( pageContent == null ) throw new Exception ( $"Can't read content for {requestName}" );
 
