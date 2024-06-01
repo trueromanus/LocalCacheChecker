@@ -396,3 +396,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/cache/LocalCacheChecker.deps.json
+/cache/LocalCacheChecker.runtimeconfig.json
