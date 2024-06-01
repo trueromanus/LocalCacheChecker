@@ -322,6 +322,9 @@ internal class Program {
 
         string folderToSaveCacheFiles = "";
 
+        var environmentCachePath = Environment.GetEnvironmentVariable ( "CACHE_PATH" );
+        if ( !string.IsNullOrEmpty ( environmentCachePath ) ) folderToSaveCacheFiles = environmentCachePath;
+
         var httpClient = new HttpClient ();
         httpClient.DefaultRequestHeaders.UserAgent.ParseAdd ( "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0 LocalCacheChecker/1.0" );
 
