@@ -53,7 +53,7 @@ internal class Program {
             }
         );
 
-        var path = Path.Combine ( folderToSaveCacheFiles, "types.cache" );
+        var path = Path.Combine ( folderToSaveCacheFiles, "types.json" );
         Console.WriteLine ( $"Saving to file {Path.GetFullPath ( path )} items" );
 
         await File.WriteAllTextAsync ( path, jsonContent );
@@ -79,7 +79,7 @@ internal class Program {
 
         var jsonContent = JsonSerializer.Serialize ( result );
 
-        var path = Path.Combine ( folderToSaveCacheFiles, "schedule.cache" );
+        var path = Path.Combine ( folderToSaveCacheFiles, "schedule.json" );
         Console.WriteLine ( $"Saving to file {Path.GetFullPath ( path )} items" );
 
         await File.WriteAllTextAsync ( path, jsonContent );
@@ -111,7 +111,7 @@ internal class Program {
             result.Add ( model );
         }
 
-        var path = Path.Combine ( folderToSaveCacheFiles, "releaseseries.cache" );
+        var path = Path.Combine ( folderToSaveCacheFiles, "releaseseries.json" );
         Console.WriteLine ( $"Saving to file {Path.GetFullPath ( path )} items" );
 
         await File.WriteAllTextAsync ( path, SerializeToJson ( result ) );
@@ -123,7 +123,7 @@ internal class Program {
         var countInPart = 200;
         var partsCount = allEpisodes.Count () / countInPart;
         for ( var i = 0; i < partsCount; i++ ) {
-            var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}.cache" );
+            var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}.json" );
             Console.WriteLine ( $"Saving episodes to file {Path.GetFullPath ( episodesPath )} items" );
 
             await File.WriteAllTextAsync ( episodesPath, SerializeToJson ( allEpisodes.Skip ( i * countInPart ).Take ( countInPart ).ToList () ) );
@@ -136,7 +136,7 @@ internal class Program {
         var countInPart = 300;
         var partsCount = allReleases.Count () / countInPart;
         for ( var i = 0; i < partsCount; i++ ) {
-            var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"releases{i}.cache" );
+            var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"releases{i}.json" );
             Console.WriteLine ( $"Saving episodes to file {Path.GetFullPath ( episodesPath )} items" );
 
             await File.WriteAllTextAsync ( episodesPath, SerializeToJson ( allReleases.Skip ( i * countInPart ).Take ( countInPart ).ToList () ) );
@@ -160,14 +160,14 @@ internal class Program {
             var totalPages = firstPage.Meta.Pagination.TotalPages;
             Console.WriteLine ( "Total pages: " + totalPages );
 
-            var pathToTypes = Path.Combine ( folderToSaveCacheFiles, "types.cache" );
+            var pathToTypes = Path.Combine ( folderToSaveCacheFiles, "types.json" );
             if ( !File.Exists ( pathToTypes ) ) {
-                Console.WriteLine ( $"File types.cache not found by path {Path.GetFullPath ( pathToTypes )}. You need synchronize types, please add -types or -all parameters to command!" );
+                Console.WriteLine ( $"File types.json not found by path {Path.GetFullPath ( pathToTypes )}. You need synchronize types, please add -types or -all parameters to command!" );
                 return;
             }
             var types = DeserializeFromJson<TypesResultModel> ( await File.ReadAllTextAsync ( pathToTypes ) );
             if ( types == null ) {
-                Console.WriteLine ( $"Content of types.cache is corrupt. You need synchronize types, please add -types or -all parameters to command!" );
+                Console.WriteLine ( $"Content of types.json is corrupt. You need synchronize types, please add -types or -all parameters to command!" );
                 return;
             }
 
@@ -182,7 +182,7 @@ internal class Program {
 
             var countReleaseFiles = await SaveReleasesAsFewFiles ( folderToSaveCacheFiles, result );
 
-            var torrentPath = Path.Combine ( folderToSaveCacheFiles, "torrents.cache" );
+            var torrentPath = Path.Combine ( folderToSaveCacheFiles, "torrents.json" );
             Console.WriteLine ( $"Saving torrents to file {Path.GetFullPath ( torrentPath )} items" );
             await File.WriteAllTextAsync ( torrentPath, SerializeToJson ( resultTorrents ) );
 
