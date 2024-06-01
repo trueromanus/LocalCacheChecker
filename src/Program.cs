@@ -120,12 +120,26 @@ internal class Program {
     }
 
     static async Task<int> SaveEpisodesAsFewFiles ( string folderToSaveCacheFiles, List<ReleaseSaveEpisodeModel> allEpisodes ) {
-        var partsCount = allEpisodes.Count () / 300;
+        var countInPart = 200;
+        var partsCount = allEpisodes.Count () / countInPart;
         for ( var i = 0; i < partsCount; i++ ) {
             var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}.cache" );
             Console.WriteLine ( $"Saving episodes to file {Path.GetFullPath ( episodesPath )} items" );
 
-            await File.WriteAllTextAsync ( episodesPath, SerializeToJson ( allEpisodes.Skip ( i * 300 ).Take ( 300 ).ToList () ) );
+            await File.WriteAllTextAsync ( episodesPath, SerializeToJson ( allEpisodes.Skip ( i * countInPart ).Take ( countInPart ).ToList () ) );
+        }
+
+        return partsCount;
+    }
+
+    static async Task<int> SaveReleasesAsFewFiles ( string folderToSaveCacheFiles, List<ReleaseSaveModel> allReleases ) {
+        var countInPart = 300;
+        var partsCount = allReleases.Count () / countInPart;
+        for ( var i = 0; i < partsCount; i++ ) {
+            var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"releases{i}.cache" );
+            Console.WriteLine ( $"Saving episodes to file {Path.GetFullPath ( episodesPath )} items" );
+
+            await File.WriteAllTextAsync ( episodesPath, SerializeToJson ( allReleases.Skip ( i * countInPart ).Take ( countInPart ).ToList () ) );
         }
 
         return partsCount;
@@ -166,9 +180,7 @@ internal class Program {
                 await MapPageReleases ( httpClient, pageData, result, resultTorrents, types, resultVideos );
             }
 
-            var path = Path.Combine ( folderToSaveCacheFiles, "releases.cache" );
-            Console.WriteLine ( $"Saving releases to file {Path.GetFullPath ( path )} items" );
-            await File.WriteAllTextAsync ( path, SerializeToJson ( result ) );
+            var countReleaseFiles = await SaveReleasesAsFewFiles ( folderToSaveCacheFiles, result );
 
             var torrentPath = Path.Combine ( folderToSaveCacheFiles, "torrents.cache" );
             Console.WriteLine ( $"Saving torrents to file {Path.GetFullPath ( torrentPath )} items" );
@@ -183,7 +195,8 @@ internal class Program {
                 SerializeToJson (
                     new MetadataModel {
                         LastReleaseTimeStamp = DateTimeOffset.Parse ( firstPage.Data.First ().FreshAt ).ToUnixTimeSeconds (),
-                        CountEpisodes = countEpisodeFiles
+                        CountEpisodes = countEpisodeFiles,
+                        CountReleases = countReleaseFiles
                     }
                 )
             );
