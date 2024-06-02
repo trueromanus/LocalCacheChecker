@@ -10,6 +10,9 @@ jobs:
     env:
       CACHE_PATH: cache
 
+    permissions:
+      contents: write
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -26,3 +29,5 @@ jobs:
       run: |
         cp src/bin/Release/net8.0/win-x64/publish/LocalCacheChecker.exe LocalCacheChecker.exe
         ./LocalCacheChecker.exe -all
+    - name: Commit changes
+      uses: stefanzweifel/git-auto-commit-action@v5
