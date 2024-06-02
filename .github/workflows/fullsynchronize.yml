@@ -29,5 +29,6 @@ jobs:
       run: |
         cp src/bin/Release/net8.0/win-x64/publish/LocalCacheChecker.exe LocalCacheChecker.exe
         ./LocalCacheChecker.exe -all
+        Remove-Item -Path "LocalCacheChecker.exe"
     - name: Commit changes
       uses: stefanzweifel/git-auto-commit-action@v5
