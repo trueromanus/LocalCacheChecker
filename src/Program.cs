@@ -171,13 +171,19 @@ internal class Program {
                 return;
             }
 
-            await MapPageReleases ( httpClient, firstPage, result, resultTorrents, types, resultVideos );
+            var pathToIgnored = Path.Combine ( folderToSaveCacheFiles, "ignored.json" );
+            var ignoredIds = new List<int> ();
+            if ( File.Exists ( pathToIgnored ) ) {
+                ignoredIds = ( DeserializeFromJson<IEnumerable<int>> ( await File.ReadAllTextAsync ( pathToIgnored ) ) )?.ToList () ?? Enumerable.Empty<int> ().ToList();
+            }
+
+            await MapPageReleases ( httpClient, firstPage, result, resultTorrents, types, resultVideos, ignoredIds );
 
             for ( var i = 2; i <= totalPages; i++ ) {
                 Console.WriteLine ( "Load page: " + i );
 
                 var pageData = await RequestMaker.GetPage ( i, httpClient );
-                await MapPageReleases ( httpClient, pageData, result, resultTorrents, types, resultVideos );
+                await MapPageReleases ( httpClient, pageData, result, resultTorrents, types, resultVideos, ignoredIds );
             }
 
             var countReleaseFiles = await SaveReleasesAsFewFiles ( folderToSaveCacheFiles, result );
@@ -211,9 +217,14 @@ internal class Program {
             List<ReleaseSaveModel> result,
             List<ReleaseTorrentSaveModel> torrents,
             TypesResultModel types,
-            List<ReleaseSaveEpisodeModel> episodes ) {
+            List<ReleaseSaveEpisodeModel> episodes,
+            IEnumerable<int> ignoredIds) {
 
-            var relatedStuff = await GetRelatedStuffForReleases ( httpClient, model.Data.Select ( a => a.Id ).ToList () );
+            var actualReleases = model.Data
+                .Where ( a => !ignoredIds.Contains ( a.Id ) )
+                .ToList();
+
+            var relatedStuff = await GetRelatedStuffForReleases ( httpClient, actualReleases.Select ( a => a.Id ).ToList () );
             torrents.AddRange (
                 relatedStuff.SelectMany (
                     a => {
@@ -240,7 +251,7 @@ internal class Program {
                     .Select ( a => new ReleaseSaveEpisodeModel { ReleaseId = a.releaseId, Items = a.episodes } )
                     .ToList ()
             );
-            result.AddRange ( MapForSave ( model.Data, relatedStuff, types ) );
+            result.AddRange ( MapForSave ( actualReleases, relatedStuff, types ) );
         }
 
         static long ParseDateTimeOffset ( string value ) {

@@ -5,7 +5,7 @@ namespace AnilibriaAPIClient {
 
     static class RequestMaker {
 
-        private static string m_apiDomain = "https://anilibria.top";
+        public static string ApiDomain = "https://anilibria.top";
 
         static public async Task<ReleasesModel> GetPage ( int page, HttpClient httpClient ) {
             var dictionary = new Dictionary<string, string> ();
@@ -18,7 +18,7 @@ namespace AnilibriaAPIClient {
             };
             HttpResponseMessage pageContent;
             try {
-                pageContent = await httpClient.GetAsync ( $"{m_apiDomain}/api/v1/anime/catalog/releases?" + string.Join ( "&", dictionary.Select ( a => $"{a.Key}={a.Value}" ) ) );
+                pageContent = await httpClient.GetAsync ( $"{ApiDomain}/api/v1/anime/catalog/releases?" + string.Join ( "&", dictionary.Select ( a => $"{a.Key}={a.Value}" ) ) );
             } catch ( Exception ex ) {
                 throw new Exception ( $"Can't make HTTP request for page {page}", ex );
             }
@@ -39,35 +39,35 @@ namespace AnilibriaAPIClient {
         }
 
         static public async Task<IEnumerable<ScheduleReleaseModel>> GetFullSchedule ( HttpClient httpClient ) {
-            return await PerformRequest<IEnumerable<ScheduleReleaseModel>> ( httpClient, $"{m_apiDomain}/api/v1/anime/schedule/week", "schedule" );
+            return await PerformRequest<IEnumerable<ScheduleReleaseModel>> ( httpClient, $"{ApiDomain}/api/v1/anime/schedule/week", "schedule" );
         }
 
         static public async Task<IEnumerable<StringValueItem>> GetAgeRatings ( HttpClient httpClient ) {
-            return await PerformRequest<IEnumerable<StringValueItem>> ( httpClient, $"{m_apiDomain}/api/v1/anime/catalog/references/age-ratings", "age ratings" );
+            return await PerformRequest<IEnumerable<StringValueItem>> ( httpClient, $"{ApiDomain}/api/v1/anime/catalog/references/age-ratings", "age ratings" );
         }
 
         static public async Task<IEnumerable<IntegerValueItem>> GetGenres ( HttpClient httpClient ) {
-            return await PerformRequest<IEnumerable<IntegerValueItem>> ( httpClient, $"{m_apiDomain}/api/v1/anime/catalog/references/genres", "genres" );
+            return await PerformRequest<IEnumerable<IntegerValueItem>> ( httpClient, $"{ApiDomain}/api/v1/anime/catalog/references/genres", "genres" );
         }
 
         static public async Task<IEnumerable<StringValueItem>> GetSeasons ( HttpClient httpClient ) {
-            return await PerformRequest<IEnumerable<StringValueItem>> ( httpClient, $"{m_apiDomain}/api/v1/anime/catalog/references/seasons", "seasons" );
+            return await PerformRequest<IEnumerable<StringValueItem>> ( httpClient, $"{ApiDomain}/api/v1/anime/catalog/references/seasons", "seasons" );
         }
 
         static public async Task<IEnumerable<StringValueItem>> GetTypes ( HttpClient httpClient ) {
-            return await PerformRequest<IEnumerable<StringValueItem>> ( httpClient, $"{m_apiDomain}/api/v1/anime/catalog/references/types", "types" );
+            return await PerformRequest<IEnumerable<StringValueItem>> ( httpClient, $"{ApiDomain}/api/v1/anime/catalog/references/types", "types" );
         }
 
         static public async Task<IEnumerable<FranchiseModel>> GetAllFranchises ( HttpClient httpClient ) {
-            return await PerformRequest<IEnumerable<FranchiseModel>> ( httpClient, $"{m_apiDomain}/api/v1/anime/franchises", "franchise releases" );
+            return await PerformRequest<IEnumerable<FranchiseModel>> ( httpClient, $"{ApiDomain}/api/v1/anime/franchises", "franchise releases" );
         }
 
         static public async Task<FranchiseReleasesModel> GetFranchisesReleases ( HttpClient httpClient, string id ) {
-            return await PerformRequest<FranchiseReleasesModel> ( httpClient, $"{m_apiDomain}/api/v1/anime/franchises/" + id, "franchise releases" );
+            return await PerformRequest<FranchiseReleasesModel> ( httpClient, $"{ApiDomain}/api/v1/anime/franchises/" + id, "franchise releases" );
         }
 
         static public async Task<ReleaseOnlyCollectionsModel> GetReleaseInnerCollections ( HttpClient httpClient, int releaseId ) {
-            return await PerformRequest<ReleaseOnlyCollectionsModel> ( httpClient, $"{m_apiDomain}/api/v1/anime/releases/{releaseId}", "release with episodes" );
+            return await PerformRequest<ReleaseOnlyCollectionsModel> ( httpClient, $"{ApiDomain}/api/v1/anime/releases/{releaseId}", "release with episodes" );
         }
 
 
