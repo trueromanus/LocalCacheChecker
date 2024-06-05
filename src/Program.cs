@@ -145,7 +145,9 @@ internal class Program {
         return partsCount;
     }
 
-    static async Task SaveReleases ( HttpClient httpClient, bool synchronizeFullReleases, string folderToSaveCacheFiles ) {
+    static bool ReleaseIsBlocked ( ReleaseDataModel model ) => model.IsBlockedByGeo || model.IsBlockedByCopyrights;
+
+    static async Task SaveReleases ( HttpClient httpClient, bool synchronizeFullReleases, string folderToSaveCacheFiles, bool isSaveBlocked ) {
         Console.WriteLine ( "Start synchronized releases..." );
 
         if ( synchronizeFullReleases ) {
@@ -154,11 +156,14 @@ internal class Program {
             var result = new List<ReleaseSaveModel> ();
             var resultTorrents = new List<ReleaseTorrentSaveModel> ();
             var resultVideos = new List<ReleaseSaveEpisodeModel> ();
+            var blockedByGeoOrCopyrights = new List<int> ();
 
             var firstPage = await RequestMaker.GetPage ( 1, httpClient );
 
             var totalPages = firstPage.Meta.Pagination.TotalPages;
             Console.WriteLine ( "Total pages: " + totalPages );
+
+            if ( isSaveBlocked ) blockedByGeoOrCopyrights.AddRange ( firstPage.Data.Where ( ReleaseIsBlocked ).Select ( a => a.Id ) );
 
             var pathToTypes = Path.Combine ( folderToSaveCacheFiles, "types.json" );
             if ( !File.Exists ( pathToTypes ) ) {
@@ -174,7 +179,7 @@ internal class Program {
             var pathToIgnored = Path.Combine ( folderToSaveCacheFiles, "ignored.json" );
             var ignoredIds = new List<int> ();
             if ( File.Exists ( pathToIgnored ) ) {
-                ignoredIds = ( DeserializeFromJson<IEnumerable<int>> ( await File.ReadAllTextAsync ( pathToIgnored ) ) )?.ToList () ?? Enumerable.Empty<int> ().ToList();
+                ignoredIds = ( DeserializeFromJson<IEnumerable<int>> ( await File.ReadAllTextAsync ( pathToIgnored ) ) )?.ToList () ?? Enumerable.Empty<int> ().ToList ();
             }
 
             await MapPageReleases ( httpClient, firstPage, result, resultTorrents, types, resultVideos, ignoredIds );
@@ -183,6 +188,8 @@ internal class Program {
                 Console.WriteLine ( "Load page: " + i );
 
                 var pageData = await RequestMaker.GetPage ( i, httpClient );
+                if ( isSaveBlocked ) blockedByGeoOrCopyrights.AddRange ( pageData.Data.Where ( ReleaseIsBlocked ).Select ( a => a.Id ) );
+
                 await MapPageReleases ( httpClient, pageData, result, resultTorrents, types, resultVideos, ignoredIds );
             }
 
@@ -206,6 +213,12 @@ internal class Program {
                     }
                 )
             );
+
+            if ( isSaveBlocked && blockedByGeoOrCopyrights.Any () ) {
+                var blockedPath = Path.Combine ( folderToSaveCacheFiles, "blockedreleases.json" );
+                Console.WriteLine ( $"Saving blocked to file {Path.GetFullPath ( blockedPath )} items" );
+                await File.WriteAllTextAsync ( blockedPath, SerializeToJson ( blockedByGeoOrCopyrights ) );
+            }
         } else {
             Console.WriteLine ( "Sorry synchronize releases partly not implement yet :(" );
             return;
@@ -218,11 +231,11 @@ internal class Program {
             List<ReleaseTorrentSaveModel> torrents,
             TypesResultModel types,
             List<ReleaseSaveEpisodeModel> episodes,
-            IEnumerable<int> ignoredIds) {
+            IEnumerable<int> ignoredIds ) {
 
             var actualReleases = model.Data
                 .Where ( a => !ignoredIds.Contains ( a.Id ) )
-                .ToList();
+                .ToList ();
 
             var relatedStuff = await GetRelatedStuffForReleases ( httpClient, actualReleases.Select ( a => a.Id ).ToList () );
             torrents.AddRange (
@@ -330,6 +343,8 @@ internal class Program {
         if ( synchronizeReleases ) Console.WriteLine ( $"Releases {( synchronizeFullReleases ? "fully" : "only latest" )}: enabled" );
         bool synchronizeTypes = args.Any ( a => a.ToLowerInvariant () == "-types" ) || isAll;
         if ( synchronizeTypes ) Console.WriteLine ( "Types: enabled" );
+        bool isSaveBlocked = args.Any ( a => a.ToLowerInvariant () == "-saveblocked" );
+        if ( isSaveBlocked ) Console.WriteLine ( "Blocked list will be saved" );
 
         string folderToSaveCacheFiles = "";
 
@@ -340,7 +355,7 @@ internal class Program {
         httpClient.DefaultRequestHeaders.UserAgent.ParseAdd ( "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0 LocalCacheChecker/1.0" );
 
         if ( synchronizeTypes ) await SaveTypes ( httpClient, folderToSaveCacheFiles );
-        if ( synchronizeReleases ) await SaveReleases ( httpClient, synchronizeFullReleases, folderToSaveCacheFiles );
+        if ( synchronizeReleases ) await SaveReleases ( httpClient, synchronizeFullReleases, folderToSaveCacheFiles, isSaveBlocked );
         if ( synchronizeSchedule ) await SaveSchedule ( httpClient, folderToSaveCacheFiles );
         if ( synchronizeFranchises ) await SaveReleaseSeries ( httpClient, folderToSaveCacheFiles );
     }

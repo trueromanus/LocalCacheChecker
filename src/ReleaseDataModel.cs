@@ -20,6 +20,8 @@
 
         public bool IsBlockedByCopyrights { get; init; }
 
+        public bool IsBlockedByGeo { get; init; }
+
         public int? AverageDurationOfEpisode { get; init; } = null;
 
         public int? AddedInUsersFavorites { get; init; } = null;
