@@ -80,6 +80,25 @@ internal class Program {
         var jsonContent = JsonSerializer.Serialize ( result );
 
         var path = Path.Combine ( folderToSaveCacheFiles, "schedule.json" );
+        if ( File.Exists ( path ) ) {
+            var content = await File.ReadAllTextAsync ( path );
+            var oldContent = JsonSerializer.Deserialize<Dictionary<string, int>> ( content );
+            if ( oldContent != null ) {
+                var oldItems = oldContent
+                    .Select ( a => a.Key + "-" + a.Value )
+                    .OrderBy ( a => a )
+                    .ToList ();
+                var newItem = result
+                    .Select ( a => a.Key + "-" + a.Value )
+                    .OrderBy ( a => a )
+                    .ToList ();
+                if ( oldItems.SequenceEqual ( newItem ) && oldItems.Count == newItem.Count ) {
+                    Console.WriteLine ( $"Schedule not contains changes!" );
+                    return;
+                }
+            }
+        }
+
         Console.WriteLine ( $"Saving to file {Path.GetFullPath ( path )} items" );
 
         await File.WriteAllTextAsync ( path, jsonContent );
@@ -112,6 +131,17 @@ internal class Program {
         }
 
         var path = Path.Combine ( folderToSaveCacheFiles, "releaseseries.json" );
+        if ( File.Exists ( path ) ) {
+            var content = await File.ReadAllTextAsync ( path );
+            var oldItems = DeserializeFromJson<List<ReleaseSeriesSaveModel>> ( content );
+            if ( oldItems != null ) {
+                if ( result.All ( a => oldItems.Any ( b => b.Compare ( a ) ) ) && result.Count() == oldItems.Count() ) {
+                    Console.WriteLine ( $"Release series not contains changes!" );
+                    return;
+                }
+            }
+        }
+
         Console.WriteLine ( $"Saving to file {Path.GetFullPath ( path )} items" );
 
         await File.WriteAllTextAsync ( path, SerializeToJson ( result ) );
