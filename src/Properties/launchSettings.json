@@ -2,7 +2,7 @@
   "profiles": {
     "LocalCacheChecker": {
       "commandName": "Project",
-      "commandLineArgs": "-releases -fullreleases"
+      "commandLineArgs": "-franchises"
     }
   }
 }
