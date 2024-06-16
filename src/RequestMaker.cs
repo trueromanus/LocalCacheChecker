@@ -1,7 +1,8 @@
-﻿using LocalCacheChecker;
+﻿using LocalCacheChecker.ApiModels;
 using System.Text.Json;
 
-namespace AnilibriaAPIClient {
+namespace AnilibriaAPIClient
+{
 
     static class RequestMaker {
 
