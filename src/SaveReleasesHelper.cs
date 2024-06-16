@@ -1,7 +1,6 @@
 ﻿using AnilibriaAPIClient;
 using LocalCacheChecker.ApiModels;
 using LocalCacheChecker.SaveModels;
-using System.Text.Json;
 using static LocalCacheChecker.Helpers.JsonHelpers;
 
 namespace LocalCacheChecker {
@@ -10,12 +9,13 @@ namespace LocalCacheChecker {
 
         static async Task<int> SaveEpisodesAsFewFiles ( string folderToSaveCacheFiles, List<ReleaseSaveEpisodeModel> allEpisodes ) {
             var countInPart = 200;
-            var partsCount = allEpisodes.Count () / countInPart;
+            var partsCount = ( allEpisodes.Count () / countInPart ) + 1;
             for ( var i = 0; i < partsCount; i++ ) {
                 var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}.json" );
                 Console.WriteLine ( $"Saving episodes to file {Path.GetFullPath ( episodesPath )} items" );
 
-                await File.WriteAllTextAsync ( episodesPath, SerializeToJson ( allEpisodes.Skip ( i * countInPart ).Take ( countInPart ).ToList () ) );
+                var items = allEpisodes.Skip ( i * countInPart ).Take ( countInPart ).ToList ();
+                if ( items.Any () ) await File.WriteAllTextAsync ( episodesPath, SerializeToJson ( items ) );
             }
 
             return partsCount;
@@ -23,12 +23,13 @@ namespace LocalCacheChecker {
 
         static async Task<int> SaveReleasesAsFewFiles ( string folderToSaveCacheFiles, List<ReleaseSaveModel> allReleases ) {
             var countInPart = 300;
-            var partsCount = allReleases.Count () / countInPart;
+            var partsCount = ( allReleases.Count () / countInPart ) + 1;
             for ( var i = 0; i < partsCount; i++ ) {
                 var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"releases{i}.json" );
-                Console.WriteLine ( $"Saving episodes to file {Path.GetFullPath ( episodesPath )} items" );
+                Console.WriteLine ( $"Saving releases to file {Path.GetFullPath ( episodesPath )} items" );
 
-                await File.WriteAllTextAsync ( episodesPath, SerializeToJson ( allReleases.Skip ( i * countInPart ).Take ( countInPart ).ToList () ) );
+                var items = allReleases.Skip ( i * countInPart ).Take ( countInPart ).ToList ();
+                if ( items.Any () ) await File.WriteAllTextAsync ( episodesPath, SerializeToJson ( items ) );
             }
 
             return partsCount;
@@ -145,67 +146,16 @@ namespace LocalCacheChecker {
             }
 
             static async Task SaveUpdatedReleases ( List<ReleaseSaveModel> result, List<ReleaseTorrentSaveModel> resultTorrents, List<ReleaseSaveEpisodeModel> resultVideos, MetadataModel metadata, string folderToSaveCacheFiles ) {
-                var countReleases = metadata.CountReleases;
-                var needProcessReleased = result.ToList ();
+                if ( !result.Any () ) return;
 
-                for ( var i = 0; i < countReleases; i++ ) {
-                    var path = Path.Combine ( folderToSaveCacheFiles, $"releases{i}.json" );
-                    if ( !File.Exists ( path ) ) continue;
+                await SaveUpdatedReleaseItems ( result, metadata, folderToSaveCacheFiles );
+                await SaveUpdateEpisodes ( resultVideos, metadata, folderToSaveCacheFiles );
+                await SaveUpdateTorrents ( resultTorrents, folderToSaveCacheFiles );
 
-                    var content = await File.ReadAllTextAsync ( path );
-                    var pageItems = DeserializeFromJson<IEnumerable<ReleaseSaveModel>> ( content );
-                    if ( pageItems == null ) continue;
+                var firstRelease = result.OrderByDescending ( a => a.Timestamp ).First ();
+                var newMetadata = metadata with { LastReleaseTimeStamp = firstRelease.Timestamp };
 
-                    var savedItems = pageItems.ToList ();
-
-                    var processedItems = new HashSet<int> ();
-                    foreach ( var item in needProcessReleased ) {
-                        var savedItem = savedItems.FirstOrDefault ( a => a.Id == item.Id );
-                        if ( savedItem == null ) continue;
-                        if ( savedItem == item ) continue;
-
-                        savedItems.Remove ( savedItem );
-                        savedItems.Add ( item );
-                        processedItems.Add ( item.Id );
-                    }
-                    if ( !processedItems.Any () ) continue;
-
-                    needProcessReleased = needProcessReleased
-                        .Where ( a => processedItems.Contains ( a.Id ) )
-                        .ToList ();
-                    await File.WriteAllTextAsync ( path, SerializeToJson ( savedItems ) );
-                }
-
-                var countEpisodes = metadata.CountEpisodes;
-                var needProcessEpisodes = resultVideos.ToList ();
-
-                for ( var i = 0; i < countEpisodes; i++ ) {
-                    var path = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}.json" );
-                    if ( !File.Exists ( path ) ) continue;
-
-                    var content = await File.ReadAllTextAsync ( path );
-                    var episodePageItems = DeserializeFromJson<IEnumerable<ReleaseSaveEpisodeModel>> ( content );
-                    if ( episodePageItems == null ) continue;
-
-                    var savedItems = episodePageItems.ToList ();
-
-                    var processedItems = new HashSet<int> ();
-                    foreach ( var item in needProcessEpisodes ) {
-                        var savedItem = savedItems.FirstOrDefault ( a => a.ReleaseId == item.ReleaseId );
-                        if ( savedItem == null ) continue;
-                        if ( savedItem == item ) continue;
-
-                        savedItems.Remove ( savedItem );
-                        savedItems.Add ( item );
-                        processedItems.Add ( item.ReleaseId );
-                    }
-                    if ( !processedItems.Any () ) continue;
-
-                    needProcessEpisodes = needProcessEpisodes
-                        .Where ( a => processedItems.Contains ( a.ReleaseId ) )
-                        .ToList ();
-                    await File.WriteAllTextAsync ( path, SerializeToJson ( savedItems ) );
-                }
+                await File.WriteAllTextAsync ( Path.Combine ( folderToSaveCacheFiles, "metadata" ), SerializeToJson ( newMetadata ) );
             }
 
             static async Task<MetadataModel?> ReadMetadata ( string folderToSaveCacheFiles ) {
@@ -282,7 +232,7 @@ namespace LocalCacheChecker {
                                         Id = torrent.Id,
                                         Codec = torrent.Codec,
                                         Description = torrent.Description,
-                                        FileName = torrent.FileName,
+                                        Filename = torrent.Filename,
                                         Hash = torrent.Hash,
                                         Magnet = torrent.Magnet,
                                         Quality = torrent.Quality,
@@ -363,6 +313,98 @@ namespace LocalCacheChecker {
             }
         }
 
+        private static async Task SaveUpdateTorrents ( List<ReleaseTorrentSaveModel> resultTorrents, string folderToSaveCacheFiles ) {
+            var path = Path.Combine ( folderToSaveCacheFiles, $"torrents.json" );
+            if ( !File.Exists ( path ) ) return;
+
+            var content = await File.ReadAllTextAsync ( path );
+            var pageItems = DeserializeFromJson<IEnumerable<ReleaseTorrentSaveModel>> ( content );
+            if ( pageItems == null ) return;
+
+            var savedItems = pageItems.ToList ();
+
+            foreach ( var item in resultTorrents ) {
+                var savedItem = savedItems.FirstOrDefault ( a => a.ReleaseId == item.ReleaseId && ( a.Codec?.Value ?? "" ) == ( item.Codec?.Value ?? "" ) );
+
+                if ( savedItem != null ) savedItems.Remove ( savedItem );
+                savedItems.Add ( item );
+            }
+
+            await File.WriteAllTextAsync ( path, SerializeToJson ( savedItems ) );
+        }
+
+        private static async Task SaveUpdateEpisodes ( List<ReleaseSaveEpisodeModel> resultVideos, MetadataModel metadata, string folderToSaveCacheFiles ) {
+            var countEpisodes = metadata.CountEpisodes;
+            var needProcessEpisodes = resultVideos.ToList ();
+
+            for ( var i = countEpisodes - 1; i >= 0; i-- ) {
+                var path = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}.json" );
+                if ( !File.Exists ( path ) ) continue;
+
+                var content = await File.ReadAllTextAsync ( path );
+                var episodePageItems = DeserializeFromJson<IEnumerable<ReleaseSaveEpisodeModel>> ( content );
+                if ( episodePageItems == null ) continue;
+
+                var savedItems = episodePageItems.ToList ();
+
+                var processedItems = new HashSet<int> ();
+                foreach ( var item in needProcessEpisodes ) {
+                    var savedItem = savedItems.FirstOrDefault ( a => a.ReleaseId == item.ReleaseId );
+                    if ( savedItem == null ) continue;
+
+                    savedItems.Remove ( savedItem );
+                    savedItems.Add ( item );
+                    processedItems.Add ( item.ReleaseId );
+                }
+                if ( !processedItems.Any () ) continue;
+
+                needProcessEpisodes = needProcessEpisodes
+                    .Where ( a => !processedItems.Contains ( a.ReleaseId ) )
+                    .ToList ();
+
+                // to first page need save new items
+                if ( i == 0 && needProcessEpisodes.Any () ) savedItems.AddRange ( needProcessEpisodes.ToList () );
+
+                await File.WriteAllTextAsync ( path, SerializeToJson ( savedItems ) );
+            }
+        }
+
+        private static async Task SaveUpdatedReleaseItems ( List<ReleaseSaveModel> result, MetadataModel metadata, string folderToSaveCacheFiles ) {
+            var countReleases = metadata.CountReleases;
+            var needProcessReleased = result.ToList ();
+
+            for ( var i = countReleases - 1; i >= 0; i-- ) {
+                var path = Path.Combine ( folderToSaveCacheFiles, $"releases{i}.json" );
+                if ( !File.Exists ( path ) ) continue;
+
+                var content = await File.ReadAllTextAsync ( path );
+                var pageItems = DeserializeFromJson<IEnumerable<ReleaseSaveModel>> ( content );
+                if ( pageItems == null ) continue;
+
+                var savedItems = pageItems.ToList ();
+
+                var processedItems = new HashSet<int> ();
+                foreach ( var item in needProcessReleased ) {
+                    var savedItem = savedItems.FirstOrDefault ( a => a.Id == item.Id );
+                    if ( savedItem == null ) continue;
+                    if ( savedItem == item ) continue;
+
+                    savedItems.Remove ( savedItem );
+                    savedItems.Add ( item );
+                    processedItems.Add ( item.Id );
+                }
+                if ( !processedItems.Any () ) continue;
+
+                needProcessReleased = needProcessReleased
+                    .Where ( a => !processedItems.Contains ( a.Id ) )
+                    .ToList ();
+
+                // to first page need save new items
+                if ( i == 0 && needProcessReleased.Any () ) savedItems.AddRange ( needProcessReleased.ToList () );
+
+                await File.WriteAllTextAsync ( path, SerializeToJson ( savedItems ) );
+            }
+        }
     }
 
 }

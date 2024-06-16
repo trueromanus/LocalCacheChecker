@@ -10,7 +10,7 @@
 
         public string Magnet { get; init; } = "";
 
-        public string FileName { get; init; } = "";
+        public string Filename { get; init; } = "";
 
         public string Description { get; init; } = "";
 
