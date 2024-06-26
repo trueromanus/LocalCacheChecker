@@ -94,6 +94,7 @@ internal class Program {
 
         foreach ( var franchise in franchises ) {
             var releasesItem = await RequestMaker.GetFranchisesReleases ( httpClient, franchise.Id );
+            if (releasesItem.FranchiseReleases.Count() <= 1) continue; //franchises with single release not actual
 
             var model = new ReleaseSeriesSaveModel {
                 CountReleases = releasesItem.FranchiseReleases.Count (),

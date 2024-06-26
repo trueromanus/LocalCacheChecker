@@ -246,6 +246,7 @@ namespace LocalCacheChecker {
 
                 episodes.AddRange (
                     relatedStuff
+                        .Where ( a => a.episodes.Any () ) // if no episodes no need to save it
                         .Select ( a => new ReleaseSaveEpisodeModel { ReleaseId = a.releaseId, Items = a.episodes } )
                         .ToList ()
                 );
