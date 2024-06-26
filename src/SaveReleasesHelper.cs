@@ -279,7 +279,7 @@ namespace LocalCacheChecker {
                             Title = item.Name.Main,
                             Rating = item.AddedInUsersFavorites ?? 0,
                             Year = item.Year.ToString (),
-                            Season = types.Seasons.FirstOrDefault ( a => a.Value == item.Season.Value )?.Description ?? item.Season.Value,
+                            Season = types.Seasons.FirstOrDefault ( a => a.Value == item.Season.Value )?.Description ?? "Не указано",
                             Status = item.IsInProduction ? "Сейчас в озвучке" : "Озвучка завершена",
                             Series = item.EpisodesAreUnknown ? "?" : ( item.EpisodesTotal ?? 0 ).ToString (),
                             Poster = item.Poster.Src,
