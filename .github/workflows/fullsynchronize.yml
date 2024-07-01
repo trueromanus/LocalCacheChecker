@@ -1,9 +1,8 @@
 name: Full synchronization
 
 on:
-  push:
-    branches: [ "main" ]
-
+  schedule:
+    - cron: "0 1 * * *"
 jobs:
   build:
     runs-on: windows-latest
