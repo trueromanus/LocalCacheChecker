@@ -307,6 +307,15 @@ namespace LocalCacheChecker {
                         }
                     }
 
+                    //reorder episodes from zero
+                    var orderedEpisodes = collections.Episodes.OrderBy ( a => a.SortOrder );
+                    var iterator = 0;
+                    foreach (var orderedEpisode in orderedEpisodes)
+                    {
+                        orderedEpisode.SortOrder = iterator;
+                        iterator++;
+                    }
+
                     result.Add ( (releaseId, collections.Torrents, collections.Members, collections.Episodes) );
                 }
 
