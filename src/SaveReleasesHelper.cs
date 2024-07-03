@@ -237,7 +237,9 @@ namespace LocalCacheChecker {
                                         Magnet = torrent.Magnet,
                                         Quality = torrent.Quality,
                                         Size = torrent.Size,
-                                        ReleaseId = a.releaseId
+                                        ReleaseId = a.releaseId,
+                                        Seeders = torrent.Seeders,
+                                        Time = ParseDateTimeOffset ( torrent.UpdatedAt )
                                     }
                                 );
                         }
@@ -310,8 +312,7 @@ namespace LocalCacheChecker {
                     //reorder episodes from zero
                     var orderedEpisodes = collections.Episodes.OrderBy ( a => a.SortOrder );
                     var iterator = 0;
-                    foreach (var orderedEpisode in orderedEpisodes)
-                    {
+                    foreach ( var orderedEpisode in orderedEpisodes ) {
                         orderedEpisode.SortOrder = iterator;
                         iterator++;
                     }

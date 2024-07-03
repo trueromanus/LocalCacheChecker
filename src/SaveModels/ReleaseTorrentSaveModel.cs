@@ -1,12 +1,14 @@
 ﻿using LocalCacheChecker.ApiModels;
 
-namespace LocalCacheChecker.SaveModels
-{
+namespace LocalCacheChecker.SaveModels {
 
-    internal record ReleaseTorrentSaveModel : ReleaseTorrentModel
-    {
+    internal record ReleaseTorrentSaveModel : ReleaseTorrentModel {
 
         public int ReleaseId { get; set; }
+
+        public long Time { get; set; }
+
+        private new string UpdatedAt { get; init; } = "";
 
     }
 
