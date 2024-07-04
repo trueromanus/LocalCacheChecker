@@ -102,7 +102,6 @@ internal class Program {
                 Poster = franchise.Image.Preview,
                 Titles = releasesItem.FranchiseReleases.Select ( a => a.Release.Name.Main ).ToList (),
                 Posters = releasesItem.FranchiseReleases.Select ( a => a.Release.Poster.Src ).ToList (),
-                Genres = releasesItem.FranchiseReleases.SelectMany ( a => a.Release.Genres ).Select ( a => a.Id ).ToList (),
                 Title = franchise.Name
             };
             result.Add ( model );

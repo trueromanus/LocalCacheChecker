@@ -8,8 +8,6 @@
 
         public string Poster { get; init; } = "";
 
-        public IEnumerable<int> Genres { get; init; } = [];
-
         public IEnumerable<string> Posters { get; init; } = [];
 
         public IEnumerable<int> ReleasesIds { get; init; } = [];
@@ -23,7 +21,6 @@
             if (CountReleases != model.CountReleases) return false;
             if (Poster != model.Poster) return false;
             if (Title != model.Title) return false;
-            if (!Genres.SequenceEqual(model.Genres)) return false;
             if (!Posters.SequenceEqual(model.Posters)) return false;
             if (!ReleasesIds.SequenceEqual(model.ReleasesIds)) return false;
             if (!Titles.SequenceEqual(model.Titles)) return false;
