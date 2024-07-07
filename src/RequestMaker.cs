@@ -1,8 +1,8 @@
 ﻿using LocalCacheChecker.ApiModels;
+using LocalCacheChecker.SerializerContext;
 using System.Text.Json;
 
-namespace AnilibriaAPIClient
-{
+namespace AnilibriaAPIClient {
 
     static class RequestMaker {
 
@@ -33,7 +33,7 @@ namespace AnilibriaAPIClient
             }
             if ( jsonContent == null ) throw new Exception ( $"Can't read content for page {page}" );
 
-            var content = JsonSerializer.Deserialize<ReleasesModel> ( jsonContent, serializeOptions );
+            var content = (ReleasesModel?) JsonSerializer.Deserialize ( jsonContent, typeof ( ReleasesModel ), ReadApiModelSerializerContext.Default );
             if ( content == null ) throw new Exception ( $"Can't serialize response for page {page}" );
 
             return content;
@@ -92,7 +92,7 @@ namespace AnilibriaAPIClient
             }
             if ( string.IsNullOrEmpty ( jsonContent ) ) throw new Exception ( $"JSON content for {requestName} is empty!" );
 
-            var content = JsonSerializer.Deserialize<T> ( jsonContent, serializeOptions );
+            var content = (T?)JsonSerializer.Deserialize ( jsonContent, typeof(T), ReadApiModelSerializerContext.Default );
             return content == null ? throw new Exception ( $"Can't serialize response for {requestName}" ) : content;
         }
 

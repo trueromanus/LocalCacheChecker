@@ -1,7 +1,6 @@
 ﻿using AnilibriaAPIClient;
 using LocalCacheChecker.SaveModels;
 using System.Reflection;
-using System.Text.Json;
 using static LocalCacheChecker.Helpers.JsonHelpers;
 using static LocalCacheChecker.SaveReleasesHelper;
 
@@ -54,12 +53,12 @@ internal class Program {
             result.Add ( schedule.Release.Id.ToString (), schedule.Release.PublishDay.Value );
         }
 
-        var jsonContent = JsonSerializer.Serialize ( result );
+        var jsonContent = SerializeToJson ( result );
 
         var path = Path.Combine ( folderToSaveCacheFiles, "schedule.json" );
         if ( File.Exists ( path ) ) {
             var content = await File.ReadAllTextAsync ( path );
-            var oldContent = JsonSerializer.Deserialize<Dictionary<string, int>> ( content );
+            var oldContent = DeserializeFromJson<Dictionary<string, int>> ( content );
             if ( oldContent != null ) {
                 var oldItems = oldContent
                     .Select ( a => a.Key + "-" + a.Value )
