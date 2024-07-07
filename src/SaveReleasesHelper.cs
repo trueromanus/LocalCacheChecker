@@ -236,6 +236,7 @@ namespace LocalCacheChecker {
                                         Hash = torrent.Hash,
                                         Magnet = torrent.Magnet,
                                         Quality = torrent.Quality,
+                                        Type = torrent.Type,
                                         Size = torrent.Size,
                                         ReleaseId = a.releaseId,
                                         Seeders = torrent.Seeders,

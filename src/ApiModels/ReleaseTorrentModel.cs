@@ -16,6 +16,8 @@
 
         public StringValueItem Codec { get; init; } = new StringValueItem ();
 
+        public StringValueItem Type { get; init; } = new StringValueItem ();
+
         public long Size { get; init; }
 
         public int Seeders { get; init; }

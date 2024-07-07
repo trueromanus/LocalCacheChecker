@@ -1,4 +1,5 @@
 ﻿using LocalCacheChecker.ApiModels;
+using System.Text.Json.Serialization;
 
 namespace LocalCacheChecker.SaveModels {
 
@@ -8,6 +9,7 @@ namespace LocalCacheChecker.SaveModels {
 
         public long Time { get; set; }
 
+        [JsonIgnore ( Condition = JsonIgnoreCondition.WhenWritingDefault )]
         private new string UpdatedAt { get; init; } = "";
 
     }
