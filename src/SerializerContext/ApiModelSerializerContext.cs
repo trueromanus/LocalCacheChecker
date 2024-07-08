@@ -33,6 +33,7 @@ namespace LocalCacheChecker.SerializerContext {
     [JsonSerializable ( typeof ( List<ReleaseSaveModel> ) )]
     [JsonSerializable ( typeof ( List<ReleaseSeriesSaveModel> ) )]
     [JsonSerializable ( typeof ( List<ReleaseTorrentSaveModel> ) )]
+    [JsonSerializable ( typeof ( IEnumerable<ReleaseSaveEpisodeModel> ) )]
     [JsonSerializable ( typeof ( IEnumerable<ReleaseSaveModel> ) )]
     [JsonSerializable ( typeof ( IEnumerable<ReleaseSeriesSaveModel> ) )]
     [JsonSerializable ( typeof ( IEnumerable<ReleaseTorrentSaveModel> ) )]
