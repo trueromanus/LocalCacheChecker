@@ -3,7 +3,7 @@ Application for create cache files from nextAPI.
 
 # Documentation
 [English Documentation](https://github.com/trueromanus/LocalCacheChecker/wiki/English-Documentation)  
-[Russian Documentation](https://github.com/trueromanus/LocalCacheChecker/edit/main/README.md)
+[Russian Documentation](https://github.com/trueromanus/LocalCacheChecker/wiki/Russian-Documentation)
 
 # Build Requirements
 - DotNet 8.0+
