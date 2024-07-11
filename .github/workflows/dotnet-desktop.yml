@@ -46,7 +46,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore src/LocalCacheChecker.csproj
     - name: Publish x64 application
-      run: dotnet publish -r win-x64 -c Release --self-contained true src/LocalCacheChecker.csproj
+      run: dotnet publish -r win-x64 -c Release -p:PublishAot=false --self-contained true src/LocalCacheChecker.csproj
     - name: Publish arm64 application
       run: dotnet publish -r win-arm64 -c Release --self-contained true src/LocalCacheChecker.csproj
     - name: Upload x64 artifacts
