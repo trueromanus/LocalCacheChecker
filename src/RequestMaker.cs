@@ -33,10 +33,12 @@ namespace AnilibriaAPIClient {
             }
             if ( jsonContent == null ) throw new Exception ( $"Can't read content for page {page}" );
 
-            var content = (ReleasesModel?) JsonSerializer.Deserialize ( jsonContent, typeof ( ReleasesModel ), ReadApiModelSerializerContext.Default );
-            if ( content == null ) throw new Exception ( $"Can't serialize response for page {page}" );
-
-            return content;
+            try {
+                var content = (ReleasesModel?) JsonSerializer.Deserialize ( jsonContent, typeof ( ReleasesModel ), ReadApiModelSerializerContext.Default );
+                return content == null ? throw new Exception ( $"Can't serialize response for page {page}" ) : content;
+            } catch (Exception ex) {
+                throw new Exception ( $"Can't deserialize content for page {page}", ex );
+            }
         }
 
         static public async Task<IEnumerable<ScheduleReleaseModel>> GetFullSchedule ( HttpClient httpClient ) {
