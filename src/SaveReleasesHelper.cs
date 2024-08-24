@@ -67,6 +67,7 @@ namespace LocalCacheChecker {
                     if ( isSaveBlocked ) blockedByGeoOrCopyrights.AddRange ( pageData.Data.Where ( ReleaseIsBlocked ).Select ( a => a.Id ) );
 
                     await MapPageReleases ( httpClient, pageData.Data, result, resultTorrents, types, resultVideos, ignoredIds );
+                    await Task.Delay ( 1000 ); // make 1 secound delay for avoid `too much requests` issue
                 }
 
                 var countReleaseFiles = await SaveReleasesAsFewFiles ( folderToSaveCacheFiles, result );
@@ -299,6 +300,9 @@ namespace LocalCacheChecker {
                 return result;
             }
 
+            //fix domain and language issues
+            static string RemakeDomain ( string url ) => url.Replace ( "cache.libria.fun", "cache-rfn.libria.fun" ).Replace( "countryIso=US", "countryIso=RU" );
+
             static async Task<IEnumerable<(int releaseId, IEnumerable<ReleaseTorrentModel> torrents, IEnumerable<ReleaseMemberModel> members, IEnumerable<ReleaseEpisodeModel> episodes)>> GetRelatedStuffForReleases ( HttpClient httpClient, IEnumerable<int> ids ) {
                 var result = new List<(int, IEnumerable<ReleaseTorrentModel>, IEnumerable<ReleaseMemberModel>, IEnumerable<ReleaseEpisodeModel>)> ();
                 foreach ( int releaseId in ids ) {
@@ -308,6 +312,10 @@ namespace LocalCacheChecker {
                         if ( collection.Preview?.Thumbnail?.Any () == true ) {
                             collection.Preview = collection.Preview with { Thumbnail = "" };
                         }
+
+                        if ( !string.IsNullOrEmpty ( collection.Hls720 ) ) collection.Hls720 = RemakeDomain ( collection.Hls720 );
+                        if ( !string.IsNullOrEmpty ( collection.Hls1080 ) ) collection.Hls1080 = RemakeDomain ( collection.Hls1080 );
+                        if ( !string.IsNullOrEmpty ( collection.Hls480 ) ) collection.Hls480 = RemakeDomain ( collection.Hls480 );
                     }
 
                     //reorder episodes from zero
