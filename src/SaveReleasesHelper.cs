@@ -286,7 +286,7 @@ namespace LocalCacheChecker {
                             Year = item.Year.ToString (),
                             Season = types.Seasons.FirstOrDefault ( a => a.Value == item.Season.Value )?.Description ?? "Не указано",
                             Status = item.IsInProduction ? "Сейчас в озвучке" : "Озвучка завершена",
-                            Series = item.EpisodesAreUnknown ? "?" : ( item.EpisodesTotal ?? 0 ).ToString (),
+                            Series = item.EpisodesAreUnknown ? "?" : $"({item.EpisodesTotal ?? 0})",
                             Poster = item.Poster.Src,
                             Type = types.Types.FirstOrDefault ( a => a.Value == item.Type.Value )?.Description ?? item.Type.Value,
                             Genres = string.Join ( ", ", item.Genres.Select ( a => types.Genres.FirstOrDefault ( b => b.Id == a.Id )?.Name ?? "" ).Where ( a => !string.IsNullOrEmpty ( a ) ) ),
@@ -301,7 +301,7 @@ namespace LocalCacheChecker {
             }
 
             //fix domain and language issues
-            static string RemakeDomain ( string url ) => url.Replace ( "cache.libria.fun", "cache-rfn.libria.fun" ).Replace( "countryIso=US", "countryIso=RU" );
+            static string RemakeDomain ( string url ) => url.Replace ( "cache.libria.fun", "cache-rfn.libria.fun" ).Replace ( "countryIso=US", "countryIso=RU" );
 
             static async Task<IEnumerable<(int releaseId, IEnumerable<ReleaseTorrentModel> torrents, IEnumerable<ReleaseMemberModel> members, IEnumerable<ReleaseEpisodeModel> episodes)>> GetRelatedStuffForReleases ( HttpClient httpClient, IEnumerable<int> ids ) {
                 var result = new List<(int, IEnumerable<ReleaseTorrentModel>, IEnumerable<ReleaseMemberModel>, IEnumerable<ReleaseEpisodeModel>)> ();
