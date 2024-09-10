@@ -45,6 +45,7 @@ namespace LocalCacheChecker.SerializerContext {
     [JsonSerializable ( typeof ( IEnumerable<IntegerValueItem> ) )]
     [JsonSerializable ( typeof ( IEnumerable<StringValueItem> ) )]
     [JsonSerializable ( typeof ( Dictionary<string, int> ) )]
+    [JsonSerializable ( typeof ( List<int> ) )]
     [JsonSourceGenerationOptions ( PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, WriteIndented = false )]
     internal partial class ApiModelSerializerContext : JsonSerializerContext {
     }
