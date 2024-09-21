@@ -1,5 +1,6 @@
 ﻿using AnilibriaAPIClient;
 using LocalCacheChecker.SaveModels;
+using System.Net;
 using System.Reflection;
 using static LocalCacheChecker.Helpers.JsonHelpers;
 using static LocalCacheChecker.SaveReleasesHelper;
@@ -148,7 +149,12 @@ internal class Program {
         var environmentCachePath = Environment.GetEnvironmentVariable ( "CACHE_PATH" );
         if ( !string.IsNullOrEmpty ( environmentCachePath ) ) folderToSaveCacheFiles = environmentCachePath;
 
-        var httpClient = new HttpClient ();
+        HttpClientHandler httpClientHandler = new () {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
+            AllowAutoRedirect = true
+        };
+
+        var httpClient = new HttpClient ( httpClientHandler );
         httpClient.DefaultRequestHeaders.UserAgent.ParseAdd ( "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0 LocalCacheChecker/1.0" );
 
         if ( synchronizeTypes ) await SaveTypes ( httpClient, folderToSaveCacheFiles );
