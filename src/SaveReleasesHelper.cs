@@ -125,6 +125,8 @@ namespace LocalCacheChecker {
                         var (pageUpdatedReleases, isFullPage) = await GetUpdatedReleaseFromPage ( httpClient, currentPage, metadata.LastReleaseTimeStamp );
                         if ( !pageUpdatedReleases.Any () ) break;
 
+                        Console.WriteLine ( $"Count updated releases {pageUpdatedReleases.Count ()} on page {currentPage}" );
+
                         allUpdatedReleases.AddRange ( pageUpdatedReleases );
 
                         if ( !isFullPage ) break;
