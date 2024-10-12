@@ -358,6 +358,7 @@ namespace LocalCacheChecker {
         private static async Task SaveUpdateEpisodes ( List<ReleaseSaveEpisodeModel> resultVideos, MetadataModel metadata, string folderToSaveCacheFiles ) {
             var countEpisodes = metadata.CountEpisodes;
             var needProcessEpisodes = resultVideos.ToList ();
+            var stayEpisodes = needProcessEpisodes.ToList ();
 
             for ( var i = countEpisodes - 1; i >= 0; i-- ) {
                 var path = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}.json" );
@@ -369,23 +370,20 @@ namespace LocalCacheChecker {
 
                 var savedItems = episodePageItems.ToList ();
 
-                var processedItems = new HashSet<int> ();
+                var hasChaged = false;
                 foreach ( var item in needProcessEpisodes ) {
                     var savedItem = savedItems.FirstOrDefault ( a => a.ReleaseId == item.ReleaseId );
                     if ( savedItem == null ) continue;
 
                     savedItems.Remove ( savedItem );
                     savedItems.Add ( item );
-                    processedItems.Add ( item.ReleaseId );
+                    hasChaged = true;
+                    stayEpisodes.Remove ( item );
                 }
-                if ( !processedItems.Any () ) continue;
+                if ( !hasChaged && i > 0 ) continue;
 
-                needProcessEpisodes = needProcessEpisodes
-                    .Where ( a => !processedItems.Contains ( a.ReleaseId ) )
-                    .ToList ();
-
-                // to first page need save new items
-                if ( i == 0 && needProcessEpisodes.Any () ) savedItems.AddRange ( needProcessEpisodes.ToList () );
+                //on first page we need to handle episodes that stay without pages (it can be possible if as example we have new relese and only one episode)
+                if ( stayEpisodes.Any () && i == 0 ) savedItems.AddRange ( stayEpisodes );
 
                 await File.WriteAllTextAsync ( path, SerializeToJson ( savedItems ) );
             }
