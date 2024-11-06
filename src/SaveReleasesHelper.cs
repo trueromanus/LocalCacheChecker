@@ -294,7 +294,8 @@ namespace LocalCacheChecker {
                             Genres = string.Join ( ", ", item.Genres.Select ( a => types.Genres.FirstOrDefault ( b => b.Id == a.Id )?.Name ?? "" ).Where ( a => !string.IsNullOrEmpty ( a ) ) ),
                             IsOngoing = item.IsOngoing,
                             AgeRating = types.AgeRatings.FirstOrDefault ( a => a.Value == item.AgeRating.Value )?.Description ?? item.AgeRating.Value,
-                            Voices = string.Join ( ", ", members.Where ( a => a.Role.Value == "voicing" ).Select ( a => a.Nickname ) )
+                            Voices = string.Join ( ", ", members.Where ( a => a.Role.Value == "voicing" ).Select ( a => a.Nickname ) ),
+                            Team = string.Join ( ", ", members.OrderByDescending(a => a.Role.Value).Select ( a => a.Nickname ) ),
                         }
                     ); ;
                 }

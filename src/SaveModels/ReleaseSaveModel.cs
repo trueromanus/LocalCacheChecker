@@ -38,6 +38,8 @@
 
         public string Voices { get; init; } = "";  // need to remake on int
 
+        public string Team { get; init; } = "";
+
         public string Year { get; init; } = "";
 
         public bool IsOngoing { get; init; }
