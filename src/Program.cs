@@ -102,7 +102,10 @@ internal class Program {
                 Poster = franchise.Image.Preview,
                 Titles = releasesItem.FranchiseReleases.Select ( a => a.Release.Name.Main ).ToList (),
                 Posters = releasesItem.FranchiseReleases.Select ( a => a.Release.Poster.Src ).ToList (),
-                Title = franchise.Name
+                Title = franchise.Name,
+                Sec = franchise.TotalDurationInSeconds,
+                Eps = franchise.TotalEpisodes,
+                Rat = franchise.Rating ?? 0
             };
             result.Add ( model );
         }

@@ -1,8 +1,6 @@
-﻿namespace LocalCacheChecker.SaveModels
-{
+﻿namespace LocalCacheChecker.SaveModels {
 
-    public record ReleaseSeriesSaveModel
-    {
+    public record ReleaseSeriesSaveModel {
 
         public int CountReleases { get; init; } = 0;
 
@@ -16,14 +14,22 @@
 
         public string Title { get; init; } = "";
 
-        public bool Compare(ReleaseSeriesSaveModel model)
-        {
-            if (CountReleases != model.CountReleases) return false;
-            if (Poster != model.Poster) return false;
-            if (Title != model.Title) return false;
-            if (!Posters.SequenceEqual(model.Posters)) return false;
-            if (!ReleasesIds.SequenceEqual(model.ReleasesIds)) return false;
-            if (!Titles.SequenceEqual(model.Titles)) return false;
+        public long Sec { get; set; }
+
+        public int Eps { get; set; }
+
+        public decimal Rat { get; set; }
+
+        public bool Compare ( ReleaseSeriesSaveModel model ) {
+            if ( CountReleases != model.CountReleases ) return false;
+            if ( Poster != model.Poster ) return false;
+            if ( Title != model.Title ) return false;
+            if ( !Posters.SequenceEqual ( model.Posters ) ) return false;
+            if ( !ReleasesIds.SequenceEqual ( model.ReleasesIds ) ) return false;
+            if ( !Titles.SequenceEqual ( model.Titles ) ) return false;
+            if ( Sec != model.Sec ) return false;
+            if ( Eps != model.Eps ) return false;
+            if ( Rat != model.Rat ) return false;
 
             return true;
         }
