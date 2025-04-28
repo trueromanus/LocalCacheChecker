@@ -67,7 +67,7 @@ namespace LocalCacheChecker {
                     if ( isSaveBlocked ) blockedByGeoOrCopyrights.AddRange ( pageData.Data.Where ( ReleaseIsBlocked ).Select ( a => a.Id ) );
 
                     await MapPageReleases ( httpClient, pageData.Data, result, resultTorrents, types, resultVideos, ignoredIds );
-                    await Task.Delay ( 1000 ); // make 1 secound delay for avoid `too much requests` issue
+                    await Task.Delay ( 2000 ); // make 1 secound delay for avoid `too much requests` issue
                 }
 
                 var countReleaseFiles = await SaveReleasesAsFewFiles ( folderToSaveCacheFiles, result );
