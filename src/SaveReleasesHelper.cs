@@ -295,7 +295,7 @@ namespace LocalCacheChecker {
                             IsOngoing = item.IsOngoing,
                             AgeRating = types.AgeRatings.FirstOrDefault ( a => a.Value == item.AgeRating.Value )?.Description ?? item.AgeRating.Value,
                             Voices = string.Join ( ", ", members.Where ( a => a.Role.Value == "voicing" ).Select ( a => a.Nickname ) ),
-                            Team = string.Join ( ", ", members.OrderByDescending(a => a.Role.Value).Select ( a => a.Nickname ) ),
+                            Team = string.Join ( ", ", members.OrderByDescending ( a => a.Role.Value ).Select ( a => a.Nickname ) ),
                         }
                     ); ;
                 }
@@ -309,6 +309,7 @@ namespace LocalCacheChecker {
             static async Task<IEnumerable<(int releaseId, IEnumerable<ReleaseTorrentModel> torrents, IEnumerable<ReleaseMemberModel> members, IEnumerable<ReleaseEpisodeModel> episodes)>> GetRelatedStuffForReleases ( HttpClient httpClient, IEnumerable<int> ids ) {
                 var result = new List<(int, IEnumerable<ReleaseTorrentModel>, IEnumerable<ReleaseMemberModel>, IEnumerable<ReleaseEpisodeModel>)> ();
                 foreach ( int releaseId in ids ) {
+                    Console.WriteLine ( $"Try to get full info about release {releaseId}" );
                     var collections = await RequestMaker.GetReleaseInnerCollections ( httpClient, releaseId );
 
                     foreach ( var collection in collections.Episodes ) {
@@ -330,6 +331,7 @@ namespace LocalCacheChecker {
                     }
 
                     result.Add ( (releaseId, collections.Torrents, collections.Members, collections.Episodes) );
+                    await Task.Delay ( 1000 ); // make 1 secound delay for avoid `too much requests` issue
                 }
 
                 return result;
