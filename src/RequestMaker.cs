@@ -6,7 +6,7 @@ namespace AnilibriaAPIClient {
 
     static class RequestMaker {
 
-        public static string ApiDomain = "https://anilibria.top";
+        public static string ApiDomain = "https://anilibria.wtf";
 
         static public async Task<ReleasesModel> GetPage ( int page, HttpClient httpClient ) {
             var dictionary = new Dictionary<string, string> ();
