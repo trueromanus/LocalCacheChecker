@@ -37,7 +37,7 @@ namespace AnilibriaAPIClient {
                 var content = (ReleasesModel?) JsonSerializer.Deserialize ( jsonContent, typeof ( ReleasesModel ), ReadApiModelSerializerContext.Default );
                 return content == null ? throw new Exception ( $"Can't serialize response for page {page}" ) : content;
             } catch (Exception ex) {
-                throw new Exception ( $"Can't deserialize content for page {page}", ex );
+                throw new Exception ( $"Can't deserialize content for page {page} - {jsonContent}", ex );
             }
         }
 
