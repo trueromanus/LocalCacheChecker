@@ -50,6 +50,8 @@ namespace LocalCacheChecker {
 
                 var firstPage = await RequestMaker.GetPage ( 1, httpClient );
 
+                await Task.Delay ( 1000 ); // make 1 secound delay for avoid `too much requests` issue
+
                 var totalPages = firstPage.Meta.Pagination.TotalPages;
                 Console.WriteLine ( "Total pages: " + totalPages );
 
@@ -336,7 +338,7 @@ namespace LocalCacheChecker {
                     }
 
                     result.Add ( (releaseId, collections.Torrents, collections.Members, collections.Episodes) );
-                    await Task.Delay ( 500 ); // make half secound delay for avoid `too much requests` issue
+                    await Task.Delay ( 1000 ); // make half secound delay for avoid `too much requests` issue
                 }
 
                 return result;
