@@ -2,7 +2,7 @@ name: Release partial only synchronization
 
 on:
   schedule:
-    - cron: "0 8,12,16,18 * * *"
+    - cron: "0 12,16,18 * * *"
 jobs:
   build:
     runs-on: windows-latest
