@@ -70,44 +70,56 @@ namespace LocalCacheChecker {
             Console.WriteLine ( "Start synchronized releases..." );
 
             if ( synchronizeFullReleases ) {
-                Console.WriteLine ( "Try to get first page" );
+                var types = await ReadTypes ( folderToSaveCacheFiles );
+                var metadata = await ReadMetadata ( folderToSaveCacheFiles );
+                if ( metadata == null ) return;
+
+                Console.WriteLine ( "Try to read relases, torrents and episodes" );
+
+                var allUpdatedReleases = new List<ReleaseDataModel> ();
+
+                for ( var i = 1; i < 3; i++ ) {
+                    Console.WriteLine ( $"Try to get page {i}" );
+                    var page = await RequestMaker.GetPage ( i, httpClient );
+                    var totalPages = page.Meta.Pagination.TotalPages;
+                    Console.WriteLine ( "Total pages: " + totalPages );
+
+                    allUpdatedReleases.AddRange ( page.Data.ToList () );
+                }
+                if ( !allUpdatedReleases.Any () ) return;
+
+                Console.WriteLine ( $"Releases {allUpdatedReleases.Count} will be updated!" );
+
+                var lastTimestamp = DateTimeOffset.Parse ( allUpdatedReleases.First ().FreshAt ).ToUnixTimeSeconds ();
+
+                var ignoredIds = await ReadIgnoreIds ( folderToSaveCacheFiles );
 
                 var result = new List<ReleaseSaveModel> ();
                 var resultTorrents = new List<ReleaseTorrentSaveModel> ();
                 var resultVideos = new List<ReleaseSaveEpisodeModel> ();
-                var blockedByGeoOrCopyrights = new List<int> ();
+                await MapPageReleases ( httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, ignoredIds );
 
-                var firstPage = await RequestMaker.GetPage ( 1, httpClient );
+                var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache ( metadata, folderToSaveCacheFiles );
 
-                await Task.Delay ( 1000 ); // make 1 secound delay for avoid `too much requests` issue
+                var updatedIds = result.Select ( a => a.Id ).ToHashSet ();
 
-                var totalPages = firstPage.Meta.Pagination.TotalPages;
-                Console.WriteLine ( "Total pages: " + totalPages );
+                var editedReleases = currentReleases
+                    .Where ( a => !updatedIds.Contains ( a.Id ) )
+                    .ToList ()
+                    .Concat ( result )
+                    .ToList ();
+                var updatedEpisodes = currentEpisodes
+                    .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
+                    .ToList ()
+                    .Concat ( resultVideos )
+                    .ToList ();
+                var updatedTorrents = currentTorrents
+                    .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
+                    .ToList ()
+                    .Concat ( resultTorrents )
+                    .ToList ();
 
-                if ( isSaveBlocked ) blockedByGeoOrCopyrights.AddRange ( firstPage.Data.Where ( ReleaseIsBlocked ).Select ( a => a.Id ) );
-
-                var types = await ReadTypes ( folderToSaveCacheFiles );
-                var ignoredIds = await ReadIgnoreIds ( folderToSaveCacheFiles );
-
-                await MapPageReleases ( httpClient, firstPage.Data, result, resultTorrents, types, resultVideos, ignoredIds );
-
-                for ( var i = 2; i <= totalPages; i++ ) {
-                    Console.WriteLine ( "Load page: " + i );
-
-                    var pageData = await RequestMaker.GetPage ( i, httpClient );
-                    if ( isSaveBlocked ) blockedByGeoOrCopyrights.AddRange ( pageData.Data.Where ( ReleaseIsBlocked ).Select ( a => a.Id ) );
-
-                    await MapPageReleases ( httpClient, pageData.Data, result, resultTorrents, types, resultVideos, ignoredIds );
-                    await Task.Delay ( 2000 ); // make 1 secound delay for avoid `too much requests` issue
-                }
-
-                await SaveLoadedItemsToFiles ( folderToSaveCacheFiles, result, resultTorrents, resultVideos, DateTimeOffset.Parse ( firstPage.Data.First ().FreshAt ).ToUnixTimeSeconds () );
-
-                if ( isSaveBlocked && blockedByGeoOrCopyrights.Any () ) {
-                    var blockedPath = Path.Combine ( folderToSaveCacheFiles, "blockedreleases.json" );
-                    Console.WriteLine ( $"Saving blocked to file {Path.GetFullPath ( blockedPath )} items" );
-                    await File.WriteAllTextAsync ( blockedPath, SerializeToJson ( blockedByGeoOrCopyrights ) );
-                }
+                await SaveLoadedItemsToFiles ( folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp );
             } else {
                 var types = await ReadTypes ( folderToSaveCacheFiles );
                 var metadata = await ReadMetadata ( folderToSaveCacheFiles );
