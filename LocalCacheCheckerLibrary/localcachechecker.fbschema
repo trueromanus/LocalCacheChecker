@@ -1,0 +1,43 @@
+﻿version 1.0
+
+globaloption CsEventClass enabled
+globaloption CsFileName Library.cs
+globaloption CppFileName LocalCacheChecker.h
+
+# delegates
+
+globaldelegate RoutineTypesCallBack
+boolean Completed
+
+globaldelegate ChangedReleasesCallBack
+boolean Completed
+
+globaldelegate LatestReleasesProgress
+int32 Percent
+int32 ProcessesReleases
+
+globaldelegate FullReleasesProgress
+int32 Percent
+int32 ProcessesReleases
+int32 PagesProcessed
+
+# methods
+
+globalmethod SynchronizeRoutines
+boolean Franchises
+boolean Schedule
+boolean Types
+method-RoutineTypesCallBack CallBack
+returnType boolean
+
+globalmethod SynchronizeChangedReleases
+int32 MaximumPages
+method-ChangedReleasesCallBack CallBack
+
+globalmethod SynchronizeLatestReleases
+int32 CountReleases
+int32 CountPages
+method-LatestReleasesProgress Callback
+
+globalmethod SynchronizeFullReleases
+method-FullReleasesProgress Callback

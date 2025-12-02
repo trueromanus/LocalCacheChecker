@@ -35,8 +35,6 @@ namespace LocalCacheChecker {
             return partsCount;
         }
 
-        static bool ReleaseIsBlocked ( ReleaseDataModel model ) => model.IsBlockedByGeo || model.IsBlockedByCopyrights;
-
         static async Task<(IEnumerable<ReleaseSaveEpisodeModel> episodes, IEnumerable<ReleaseSaveModel> releases, IEnumerable<ReleaseTorrentSaveModel> torrents)> ReadCurrentCache ( MetadataModel metadata, string folderToSaveCacheFiles ) {
             var loadedEpisodes = new List<ReleaseSaveEpisodeModel> ();
             var loadedReleases = new List<ReleaseSaveModel> ();
@@ -78,13 +76,15 @@ namespace LocalCacheChecker {
 
                 var allUpdatedReleases = new List<ReleaseDataModel> ();
 
-                for ( var i = 1; i < 3; i++ ) {
+                for ( var i = 1; i < 60; i++ ) {
                     Console.WriteLine ( $"Try to get page {i}" );
                     var page = await RequestMaker.GetPage ( i, httpClient );
                     var totalPages = page.Meta.Pagination.TotalPages;
-                    Console.WriteLine ( "Total pages: " + totalPages );
+                    if ( i == 1 ) Console.WriteLine ( "Total pages: " + totalPages );
 
                     allUpdatedReleases.AddRange ( page.Data.ToList () );
+                    await Task.Delay ( 2000 );
+                    if ( i == totalPages ) break;
                 }
                 if ( !allUpdatedReleases.Any () ) return;
 
@@ -185,176 +185,178 @@ namespace LocalCacheChecker {
                 return;
             }
 
-            static async Task<MetadataModel?> ReadMetadata ( string folderToSaveCacheFiles ) {
-                var metadataPath = Path.Combine ( folderToSaveCacheFiles, "metadata" );
+        }
+        static async Task<MetadataModel?> ReadMetadata ( string folderToSaveCacheFiles ) {
+            var metadataPath = Path.Combine ( folderToSaveCacheFiles, "metadata" );
 
-                if ( !File.Exists ( metadataPath ) ) {
-                    Console.WriteLine ( "Sorry but you need to synchronize all releases first. Use `-releases -fullreleases` options!" );
-                    return null;
-                }
-                var metadata = DeserializeFromJson<MetadataModel> ( await File.ReadAllTextAsync ( metadataPath ) );
-                if ( metadata == null ) {
-                    Console.WriteLine ( "Can't read metadata file, please check if it file is correct! May be need to make recreate it with `-releases -fullreleases` options!" );
-                    return null;
-                }
-
-                return metadata;
+            if ( !File.Exists ( metadataPath ) ) {
+                Console.WriteLine ( "Sorry but you need to synchronize all releases first. Use `-releases -fullreleases` options!" );
+                return null;
+            }
+            var metadata = DeserializeFromJson<MetadataModel> ( await File.ReadAllTextAsync ( metadataPath ) );
+            if ( metadata == null ) {
+                Console.WriteLine ( "Can't read metadata file, please check if it file is correct! May be need to make recreate it with `-releases -fullreleases` options!" );
+                return null;
             }
 
-            static async Task<TypesResultModel> ReadTypes ( string folderToSaveCacheFiles ) {
-                var pathToTypes = Path.Combine ( folderToSaveCacheFiles, "types.json" );
-                if ( !File.Exists ( pathToTypes ) ) {
-                    Console.WriteLine ( $"File types.json not found by path {Path.GetFullPath ( pathToTypes )}. You need synchronize types, please add -types or -all parameters to command!" );
-                    Environment.Exit ( 1 );
-                }
-                var types = DeserializeFromJson<TypesResultModel> ( await File.ReadAllTextAsync ( pathToTypes ) );
-                if ( types == null ) {
-                    Console.WriteLine ( $"Content of types.json is corrupt. You need synchronize types, please add -types or -all parameters to command!" );
-                    Environment.Exit ( 1 );
-                }
+            return metadata;
+        }
 
-                return types;
+        static async Task<TypesResultModel> ReadTypes ( string folderToSaveCacheFiles ) {
+            var pathToTypes = Path.Combine ( folderToSaveCacheFiles, "types.json" );
+            if ( !File.Exists ( pathToTypes ) ) {
+                Console.WriteLine ( $"File types.json not found by path {Path.GetFullPath ( pathToTypes )}. You need synchronize types, please add -types or -all parameters to command!" );
+                Environment.Exit ( 1 );
+            }
+            var types = DeserializeFromJson<TypesResultModel> ( await File.ReadAllTextAsync ( pathToTypes ) );
+            if ( types == null ) {
+                Console.WriteLine ( $"Content of types.json is corrupt. You need synchronize types, please add -types or -all parameters to command!" );
+                Environment.Exit ( 1 );
             }
 
-            static async Task<IEnumerable<int>> ReadIgnoreIds ( string folderToSaveCacheFiles ) {
-                var pathToIgnored = Path.Combine ( folderToSaveCacheFiles, "ignored.json" );
-                var ignoredIds = new List<int> ();
-                if ( File.Exists ( pathToIgnored ) ) {
-                    ignoredIds = ( DeserializeFromJson<IEnumerable<int>> ( await File.ReadAllTextAsync ( pathToIgnored ) ) )?.ToList () ?? Enumerable.Empty<int> ().ToList ();
-                }
+            return types;
+        }
 
-                return ignoredIds;
+        static async Task<IEnumerable<int>> ReadIgnoreIds ( string folderToSaveCacheFiles ) {
+            var pathToIgnored = Path.Combine ( folderToSaveCacheFiles, "ignored.json" );
+            var ignoredIds = new List<int> ();
+            if ( File.Exists ( pathToIgnored ) ) {
+                ignoredIds = ( DeserializeFromJson<IEnumerable<int>> ( await File.ReadAllTextAsync ( pathToIgnored ) ) )?.ToList () ?? Enumerable.Empty<int> ().ToList ();
             }
 
-            static async Task MapPageReleases (
-                HttpClient httpClient,
-                IEnumerable<ReleaseDataModel> releases,
-                List<ReleaseSaveModel> result,
-                List<ReleaseTorrentSaveModel> torrents,
-                TypesResultModel types,
-                List<ReleaseSaveEpisodeModel> episodes,
-                IEnumerable<int> ignoredIds ) {
+            return ignoredIds;
+        }
 
-                var actualReleases = releases
-                    .Where ( a => !ignoredIds.Contains ( a.Id ) )
-                    .ToList ();
+        static async Task MapPageReleases (
+            HttpClient httpClient,
+            IEnumerable<ReleaseDataModel> releases,
+            List<ReleaseSaveModel> result,
+            List<ReleaseTorrentSaveModel> torrents,
+            TypesResultModel types,
+            List<ReleaseSaveEpisodeModel> episodes,
+            IEnumerable<int> ignoredIds ) {
 
-                var relatedStuff = await GetRelatedStuffForReleases ( httpClient, actualReleases.Select ( a => a.Id ).ToList () );
-                torrents.AddRange (
-                    relatedStuff.SelectMany (
-                        a => {
-                            return a.torrents
-                                .Select (
-                                    torrent => new ReleaseTorrentSaveModel {
-                                        Id = torrent.Id,
-                                        Codec = torrent.Codec,
-                                        Description = torrent.Description,
-                                        Filename = torrent.Filename,
-                                        Hash = torrent.Hash,
-                                        Magnet = torrent.Magnet,
-                                        Quality = torrent.Quality,
-                                        Type = torrent.Type,
-                                        Size = torrent.Size,
-                                        ReleaseId = a.releaseId,
-                                        Seeders = torrent.Seeders,
-                                        Time = ParseDateTimeOffset ( torrent.UpdatedAt )
-                                    }
-                                );
-                        }
-                    )
-                );
+            var actualReleases = releases
+                .Where ( a => !ignoredIds.Contains ( a.Id ) )
+                .ToList ();
 
-                episodes.AddRange (
-                    relatedStuff
-                        .Where ( a => a.episodes.Any () ) // if no episodes no need to save it
-                        .Select ( a => new ReleaseSaveEpisodeModel { ReleaseId = a.releaseId, Items = a.episodes } )
-                        .ToList ()
-                );
-                result.AddRange ( MapForSave ( actualReleases, relatedStuff, types ) );
+            var relatedStuff = await GetRelatedStuffForReleases ( httpClient, actualReleases.Select ( a => a.Id ).ToList () );
+            torrents.AddRange (
+                relatedStuff.SelectMany (
+                    a => {
+                        return a.torrents
+                            .Select (
+                                torrent => new ReleaseTorrentSaveModel {
+                                    Id = torrent.Id,
+                                    Codec = torrent.Codec,
+                                    Description = torrent.Description,
+                                    Filename = torrent.Filename,
+                                    Hash = torrent.Hash,
+                                    Magnet = torrent.Magnet,
+                                    Quality = torrent.Quality,
+                                    Type = torrent.Type,
+                                    Size = torrent.Size,
+                                    ReleaseId = a.releaseId,
+                                    Seeders = torrent.Seeders,
+                                    Time = ParseDateTimeOffset ( torrent.UpdatedAt )
+                                }
+                            );
+                    }
+                )
+            );
+
+            episodes.AddRange (
+                relatedStuff
+                    .Where ( a => a.episodes.Any () ) // if no episodes no need to save it
+                    .Select ( a => new ReleaseSaveEpisodeModel { ReleaseId = a.releaseId, Items = a.episodes } )
+                    .ToList ()
+            );
+            result.AddRange ( MapForSave ( actualReleases, relatedStuff, types ) );
+        }
+
+        static long ParseDateTimeOffset ( string value ) {
+            if ( string.IsNullOrEmpty ( value ) ) return 0;
+
+            try {
+                return DateTimeOffset.Parse ( value ).ToUnixTimeSeconds ();
+            } catch {
+                return 0;
+            }
+        }
+
+        static IEnumerable<ReleaseSaveModel> MapForSave ( IEnumerable<ReleaseDataModel> items, IEnumerable<(int releaseId, IEnumerable<ReleaseTorrentModel> torrents, IEnumerable<ReleaseMemberModel> members, IEnumerable<ReleaseEpisodeModel> episodes)> relatedStuff, TypesResultModel types ) {
+            var result = new List<ReleaseSaveModel> ();
+            foreach ( var item in items ) {
+                var (releaseId, torrents, members, episodes) = relatedStuff.FirstOrDefault ( a => a.releaseId == item.Id );
+                result.Add (
+                    new ReleaseSaveModel {
+                        Id = item.Id,
+                        Announce = item.Notification ?? "",
+                        Code = item.Alias,
+                        CountVideos = episodes?.Count () ?? 0,
+                        CountTorrents = torrents?.Count () ?? 0,
+                        Description = item.Description,
+                        Timestamp = ParseDateTimeOffset ( item.FreshAt ),
+                        OriginalName = item.Name.English,
+                        Title = item.Name.Main,
+                        Rating = item.AddedInUsersFavorites ?? 0,
+                        Year = item.Year.ToString (),
+                        Season = types.Seasons.FirstOrDefault ( a => a.Value == item.Season.Value )?.Description ?? "Не указано",
+                        Status = item.IsInProduction ? "Сейчас в озвучке" : "Озвучка завершена",
+                        Series = item.EpisodesAreUnknown ? "?" : $"({item.EpisodesTotal ?? 0})",
+                        Poster = item.Poster.Src,
+                        Type = types.Types.FirstOrDefault ( a => a.Value == item.Type.Value )?.Description ?? item.Type.Value,
+                        Genres = string.Join ( ", ", item.Genres.Select ( a => types.Genres.FirstOrDefault ( b => b.Id == a.Id )?.Name ?? "" ).Where ( a => !string.IsNullOrEmpty ( a ) ) ),
+                        IsOngoing = item.IsOngoing,
+                        AgeRating = types.AgeRatings.FirstOrDefault ( a => a.Value == item.AgeRating.Value )?.Description ?? item.AgeRating.Value,
+                        Voices = members != null ? string.Join ( ", ", members.Where ( a => a.Role.Value == "voicing" ).Select ( a => a.Nickname ) ) : "",
+                        Team = members != null ? string.Join ( ", ", members.OrderByDescending ( a => a.Role.Value ).Select ( a => a.Nickname ) ) : ""
+                    }
+                ); ;
             }
 
-            static long ParseDateTimeOffset ( string value ) {
-                if ( string.IsNullOrEmpty ( value ) ) return 0;
+            return result;
+        }
 
+        //fix domain and language issues
+        static string RemakeDomain ( string url ) => url.Replace ( "cache.libria.fun", "cache-rfn.libria.fun" ).Replace ( "countryIso=US", "countryIso=RU" );
+
+        static async Task<IEnumerable<(int releaseId, IEnumerable<ReleaseTorrentModel> torrents, IEnumerable<ReleaseMemberModel> members, IEnumerable<ReleaseEpisodeModel> episodes)>> GetRelatedStuffForReleases ( HttpClient httpClient, IEnumerable<int> ids ) {
+            var result = new List<(int, IEnumerable<ReleaseTorrentModel>, IEnumerable<ReleaseMemberModel>, IEnumerable<ReleaseEpisodeModel>)> ();
+            foreach ( int releaseId in ids ) {
+                Console.WriteLine ( "Load for release " + releaseId );
+
+                ReleaseOnlyCollectionsModel collections;
                 try {
-                    return DateTimeOffset.Parse ( value ).ToUnixTimeSeconds ();
-                } catch {
-                    return 0;
-                }
-            }
-
-            static IEnumerable<ReleaseSaveModel> MapForSave ( IEnumerable<ReleaseDataModel> items, IEnumerable<(int releaseId, IEnumerable<ReleaseTorrentModel> torrents, IEnumerable<ReleaseMemberModel> members, IEnumerable<ReleaseEpisodeModel> episodes)> relatedStuff, TypesResultModel types ) {
-                var result = new List<ReleaseSaveModel> ();
-                foreach ( var item in items ) {
-                    var (releaseId, torrents, members, episodes) = relatedStuff.FirstOrDefault ( a => a.releaseId == item.Id );
-                    result.Add (
-                        new ReleaseSaveModel {
-                            Id = item.Id,
-                            Announce = item.Notification ?? "",
-                            Code = item.Alias,
-                            CountVideos = episodes?.Count () ?? 0,
-                            CountTorrents = torrents?.Count () ?? 0,
-                            Description = item.Description,
-                            Timestamp = ParseDateTimeOffset ( item.FreshAt ),
-                            OriginalName = item.Name.English,
-                            Title = item.Name.Main,
-                            Rating = item.AddedInUsersFavorites ?? 0,
-                            Year = item.Year.ToString (),
-                            Season = types.Seasons.FirstOrDefault ( a => a.Value == item.Season.Value )?.Description ?? "Не указано",
-                            Status = item.IsInProduction ? "Сейчас в озвучке" : "Озвучка завершена",
-                            Series = item.EpisodesAreUnknown ? "?" : $"({item.EpisodesTotal ?? 0})",
-                            Poster = item.Poster.Src,
-                            Type = types.Types.FirstOrDefault ( a => a.Value == item.Type.Value )?.Description ?? item.Type.Value,
-                            Genres = string.Join ( ", ", item.Genres.Select ( a => types.Genres.FirstOrDefault ( b => b.Id == a.Id )?.Name ?? "" ).Where ( a => !string.IsNullOrEmpty ( a ) ) ),
-                            IsOngoing = item.IsOngoing,
-                            AgeRating = types.AgeRatings.FirstOrDefault ( a => a.Value == item.AgeRating.Value )?.Description ?? item.AgeRating.Value,
-                            Voices = members != null ? string.Join ( ", ", members.Where ( a => a.Role.Value == "voicing" ).Select ( a => a.Nickname ) ) : "",
-                            Team = members != null ? string.Join ( ", ", members.OrderByDescending ( a => a.Role.Value ).Select ( a => a.Nickname ) ) : ""
-                        }
-                    ); ;
+                    collections = await RequestMaker.GetReleaseInnerCollections ( httpClient, releaseId );
+                } catch ( Exception ex ) {
+                    Console.WriteLine ( $"Error while try get release info for {releaseId} {ex.Message}" );
+                    continue;
                 }
 
-                return result;
-            }
-
-            //fix domain and language issues
-            static string RemakeDomain ( string url ) => url.Replace ( "cache.libria.fun", "cache-rfn.libria.fun" ).Replace ( "countryIso=US", "countryIso=RU" );
-
-            static async Task<IEnumerable<(int releaseId, IEnumerable<ReleaseTorrentModel> torrents, IEnumerable<ReleaseMemberModel> members, IEnumerable<ReleaseEpisodeModel> episodes)>> GetRelatedStuffForReleases ( HttpClient httpClient, IEnumerable<int> ids ) {
-                var result = new List<(int, IEnumerable<ReleaseTorrentModel>, IEnumerable<ReleaseMemberModel>, IEnumerable<ReleaseEpisodeModel>)> ();
-                foreach ( int releaseId in ids ) {
-                    ReleaseOnlyCollectionsModel collections;
-                    try {
-                        collections = await RequestMaker.GetReleaseInnerCollections ( httpClient, releaseId );
-                    } catch ( Exception ex ) {
-                        Console.WriteLine ( $"Error while try get release info for {releaseId} {ex.Message}" );
-                        continue;
+                foreach ( var collection in collections.Episodes ) {
+                    if ( collection.Preview?.Thumbnail?.Any () == true ) {
+                        collection.Preview = collection.Preview with { Thumbnail = "" };
                     }
 
-                    foreach ( var collection in collections.Episodes ) {
-                        if ( collection.Preview?.Thumbnail?.Any () == true ) {
-                            collection.Preview = collection.Preview with { Thumbnail = "" };
-                        }
-
-                        if ( !string.IsNullOrEmpty ( collection.Hls720 ) ) collection.Hls720 = RemakeDomain ( collection.Hls720 );
-                        if ( !string.IsNullOrEmpty ( collection.Hls1080 ) ) collection.Hls1080 = RemakeDomain ( collection.Hls1080 );
-                        if ( !string.IsNullOrEmpty ( collection.Hls480 ) ) collection.Hls480 = RemakeDomain ( collection.Hls480 );
-                    }
-
-                    //reorder episodes from zero
-                    var orderedEpisodes = collections.Episodes.OrderBy ( a => a.SortOrder );
-                    var iterator = 0;
-                    foreach ( var orderedEpisode in orderedEpisodes ) {
-                        orderedEpisode.SortOrder = iterator;
-                        iterator++;
-                    }
-
-                    result.Add ( (releaseId, collections.Torrents, collections.Members, collections.Episodes) );
-                    await Task.Delay ( 1000 ); // make half secound delay for avoid `too much requests` issue
+                    if ( !string.IsNullOrEmpty ( collection.Hls720 ) ) collection.Hls720 = RemakeDomain ( collection.Hls720 );
+                    if ( !string.IsNullOrEmpty ( collection.Hls1080 ) ) collection.Hls1080 = RemakeDomain ( collection.Hls1080 );
+                    if ( !string.IsNullOrEmpty ( collection.Hls480 ) ) collection.Hls480 = RemakeDomain ( collection.Hls480 );
                 }
 
-                return result;
+                //reorder episodes from zero
+                var orderedEpisodes = collections.Episodes.OrderBy ( a => a.SortOrder );
+                var iterator = 0;
+                foreach ( var orderedEpisode in orderedEpisodes ) {
+                    orderedEpisode.SortOrder = iterator;
+                    iterator++;
+                }
+
+                result.Add ( (releaseId, collections.Torrents, collections.Members, collections.Episodes) );
+                await Task.Delay ( 2000 ); // make secound delay for avoid `too much requests` issue
             }
+
+            return result;
         }
 
         private static async Task SaveLoadedItemsToFiles (

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34601.278
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LocalCacheChecker", "LocalCacheChecker.csproj", "{CFDB367B-D0E2-4FD2-8C1A-B1AABFCA0997}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalCacheCheckerLibrary", "..\LocalCacheCheckerLibrary\LocalCacheCheckerLibrary.csproj", "{F8EE7114-5A87-467F-94AB-93FD41C3D19D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{CFDB367B-D0E2-4FD2-8C1A-B1AABFCA0997}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CFDB367B-D0E2-4FD2-8C1A-B1AABFCA0997}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CFDB367B-D0E2-4FD2-8C1A-B1AABFCA0997}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8EE7114-5A87-467F-94AB-93FD41C3D19D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8EE7114-5A87-467F-94AB-93FD41C3D19D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8EE7114-5A87-467F-94AB-93FD41C3D19D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8EE7114-5A87-467F-94AB-93FD41C3D19D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
