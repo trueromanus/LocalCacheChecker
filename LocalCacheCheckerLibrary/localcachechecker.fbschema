@@ -23,6 +23,10 @@ int32 Percent
 int32 ProcessesReleases
 int32 PagesProcessed
 
+globaldelegate ShareCacheCallBack
+boolean Completed
+stringansi Message
+
 # methods
 
 globalmethod SynchronizeRoutines
@@ -34,12 +38,28 @@ method-RoutineTypesCallBack CallBack
 
 globalmethod SynchronizeChangedReleases
 int32 MaximumPages
+stringansi Path
 method-ChangedReleasesCallBack CallBack
 
 globalmethod SynchronizeLatestReleases
 int32 CountReleases
 int32 CountPages
+stringansi Path
 method-LatestReleasesProgress Callback
 
 globalmethod SynchronizeFullReleases
+stringansi Path
 method-FullReleasesProgress Callback
+
+globalmethod ShareCache
+boolean Posters
+boolean Torrents
+boolean ReleaseCache
+stringansi CachePath
+stringansi ResultPath
+method-ShareCacheCallBack CallBack
+
+globalmethod LoadCache
+stringansi CacheFile
+stringansi CachePath
+method-ShareCacheCallBack CallBack

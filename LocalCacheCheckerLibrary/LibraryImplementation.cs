@@ -20,15 +20,50 @@ namespace LocalCacheCheckerLibrary {
             );
         }
 
-        public static partial void SynchronizeChangedReleasesInternal ( int maximumPages, ChangedReleasesCallBack callBack ) {
+        public static partial void SynchronizeChangedReleasesInternal ( int maximumPages, string path, ChangedReleasesCallBack callBack ) {
+            Task.Run (
+                async () => {
+                    try {
+                        await SaveReleasesHelper.SaveReleases ( GetHttpClient (), false, "", false );
+                        callBack ( true );
+                    } catch {
+                        callBack ( false );
+                    }
+                }
+            );
+        }
+
+        public static partial void SynchronizeLatestReleasesInternal ( int countReleases, int countPages, string path, LatestReleasesProgress callback ) {
+            Task.Run (
+                async () => {
+                    try {
+                        await SaveReleasesHelper.SaveReleases ( GetHttpClient (), false, "", false );
+                        // callBack ( true );
+                    } catch {
+                        // callBack ( false );
+                    }
+                }
+            );
+        }
+
+        public static partial void SynchronizeFullReleasesInternal ( string path, FullReleasesProgress callback ) {
+            Task.Run (
+                async () => {
+                    try {
+                        await SaveReleasesHelper.SaveReleases ( GetHttpClient (), false, "", false );
+                        // callBack ( true );
+                    } catch {
+                        // callBack ( false );
+                    }
+                }
+            );
+        }
+
+        public static partial void ShareCacheInternal ( bool posters, bool torrents, bool releaseCache, string cachePath, string resultPath, ShareCacheCallBack callBack ) {
 
         }
 
-        public static partial void SynchronizeLatestReleasesInternal ( int countReleases, int countPages, LatestReleasesProgress callback ) {
-
-        }
-
-        public static partial void SynchronizeFullReleasesInternal ( FullReleasesProgress callback ) {
+        public static partial void LoadCacheInternal ( string cacheFile, string cachePath, ShareCacheCallBack callBack ) {
 
         }
 

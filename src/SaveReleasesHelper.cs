@@ -5,7 +5,7 @@ using static LocalCacheChecker.Helpers.JsonHelpers;
 
 namespace LocalCacheChecker {
 
-    internal class SaveReleasesHelper {
+    public class SaveReleasesHelper {
 
         static async Task<int> SaveEpisodesAsFewFiles ( string folderToSaveCacheFiles, List<ReleaseSaveEpisodeModel> allEpisodes ) {
             var countInPart = 200;
