@@ -2,6 +2,8 @@
 
 globaloption CsEventClass enabled
 globaloption CsFileName Library.cs
+globaloption CsNameSpace LocalCacheCheckerLibrary
+globaloption CsClassName Library
 globaloption CppFileName LocalCacheChecker.h
 
 # delegates
@@ -27,8 +29,8 @@ globalmethod SynchronizeRoutines
 boolean Franchises
 boolean Schedule
 boolean Types
+stringansi Path
 method-RoutineTypesCallBack CallBack
-returnType boolean
 
 globalmethod SynchronizeChangedReleases
 int32 MaximumPages
