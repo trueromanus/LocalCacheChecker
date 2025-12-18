@@ -1,4 +1,5 @@
 ﻿using LocalCacheChecker;
+using System.Runtime.InteropServices;
 using static LocalCacheChecker.Helpers.HttpHelper;
 
 namespace LocalCacheCheckerLibrary {
@@ -38,7 +39,7 @@ namespace LocalCacheCheckerLibrary {
                 async () => {
                     try {
                         await SaveReleasesHelper.SaveReleases ( GetHttpClient (), false, "", false );
-                        // callBack ( true );
+                        //callback ( 1, );
                     } catch {
                         // callBack ( false );
                     }
@@ -51,7 +52,7 @@ namespace LocalCacheCheckerLibrary {
                 async () => {
                     try {
                         await SaveReleasesHelper.SaveReleases ( GetHttpClient (), false, "", false );
-                        // callBack ( true );
+                        //callback ( true );
                     } catch {
                         // callBack ( false );
                     }
@@ -60,11 +61,41 @@ namespace LocalCacheCheckerLibrary {
         }
 
         public static partial void ShareCacheInternal ( bool posters, bool torrents, bool releaseCache, string cachePath, string resultPath, ShareCacheCallBack callBack ) {
+            Task.Run (
+                () => {
+                    try {
+                        SharingCacheHelper.SaveChacheToFolder ( cachePath, resultPath, posters, torrents, releaseCache );
 
+                        var message = Marshal.StringToHGlobalAnsi ( "" );
+                        callBack ( false, message );
+                        Marshal.FreeHGlobal ( message );
+
+                    } catch ( Exception ex ) {
+                        var message = Marshal.StringToHGlobalAnsi ( ex.Message );
+                        callBack ( false, message );
+                        Marshal.FreeHGlobal ( message );
+                    }
+                }
+            );
         }
 
         public static partial void LoadCacheInternal ( string cacheFile, string cachePath, ShareCacheCallBack callBack ) {
+            Task.Run (
+                () => {
+                    try {
+                        SharingCacheHelper.LoadFromFolder ( cacheFile, cachePath );
 
+                        var message = Marshal.StringToHGlobalAnsi ( "" );
+                        callBack ( false, message );
+                        Marshal.FreeHGlobal ( message );
+
+                    } catch ( Exception ex ) {
+                        var message = Marshal.StringToHGlobalAnsi ( ex.Message );
+                        callBack ( false, message );
+                        Marshal.FreeHGlobal ( message );
+                    }
+                }
+            );
         }
 
     }

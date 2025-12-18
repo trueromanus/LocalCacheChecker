@@ -30,6 +30,27 @@ namespace LocalCacheChecker {
             }
         }
 
+        public static void LoadFromFolder ( string cacheFile, string cachePath ) {
+            if ( !Directory.Exists ( cachePath ) ) throw new Exception ( $"Folder {cachePath} not exists!" );
+            if ( !File.Exists ( cacheFile ) ) throw new Exception ( $"File {cacheFile} not exists!" );
+
+            using var zipToOpen = new FileStream ( cacheFile, FileMode.Open );
+            using var archive = new ZipArchive ( zipToOpen, ZipArchiveMode.Read );
+
+            foreach ( var entry in archive.Entries ) {
+                var isPoster = entry.FullName.StartsWith ( "imagecache" );
+                var isReleaseCache = entry.Name.Contains ( ".cache" ) || entry.Name.Contains ( "metadata" );
+                if ( isPoster ) {
+                    var cacheFileName = Path.Combine ( cachePath, "imagecache", entry.Name );
+                    var imageExists = File.Exists ( cacheFileName );
+                    if ( !imageExists ) entry.ExtractToFile ( cacheFileName );
+                }
+                if ( isReleaseCache ) {
+                    entry.ExtractToFile ( Path.Combine ( cachePath, entry.Name ) );
+                }
+            }
+        }
+
     }
 
 }
