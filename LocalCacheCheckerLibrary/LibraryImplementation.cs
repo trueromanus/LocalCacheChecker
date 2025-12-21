@@ -7,14 +7,17 @@ namespace LocalCacheCheckerLibrary {
     public static partial class Library {
 
         public static partial void SynchronizeRoutinesInternal ( bool franchises, bool schedule, bool types, string path, RoutineTypesCallBack callBack ) {
+            Console.WriteLine ( $"SynchronizeRoutinesInternal:franchises={franchises},schedule={schedule},types={types},path={path}" );
             Task.Run (
                 async () => {
                     try {
-                        if ( franchises ) await SaveRoutineHelpers.SaveReleaseSeries ( GetHttpClient (), path );
-                        if ( schedule ) await SaveRoutineHelpers.SaveSchedule ( GetHttpClient (), path );
+
                         if ( types ) await SaveRoutineHelpers.SaveTypes ( GetHttpClient (), path );
+                        if ( schedule ) await SaveRoutineHelpers.SaveSchedule ( GetHttpClient (), path );
+                        if ( franchises ) await SaveRoutineHelpers.SaveReleaseSeries ( GetHttpClient (), path );
                         callBack ( true );
-                    } catch {
+                    } catch ( Exception ex ) {
+                        Console.WriteLine ( $"SynchronizeRoutinesInternal:failed " + ex.Message );
                         callBack ( false );
                     }
                 }
@@ -22,12 +25,14 @@ namespace LocalCacheCheckerLibrary {
         }
 
         public static partial void SynchronizeChangedReleasesInternal ( int maximumPages, string path, ChangedReleasesCallBack callBack ) {
+            Console.WriteLine ( $"SynchronizeChangedReleasesInternal:maximumPages={maximumPages},path={path}" );
             Task.Run (
                 async () => {
                     try {
-                        await SaveReleasesHelper.SaveReleases ( GetHttpClient (), false, "", false );
+                        await SaveReleasesHelper.SaveReleases ( GetHttpClient (), false, path, false );
                         callBack ( true );
-                    } catch {
+                    } catch ( Exception ex ) {
+                        Console.WriteLine ( $"SynchronizeChangedReleasesInternal:failed " + ex.Message );
                         callBack ( false );
                     }
                 }
@@ -38,7 +43,7 @@ namespace LocalCacheCheckerLibrary {
             Task.Run (
                 async () => {
                     try {
-                        await SaveReleasesHelper.SaveReleases ( GetHttpClient (), false, "", false );
+                        await SaveReleasesHelper.SaveReleases ( GetHttpClient (), false, path, false );
                         //callback ( 1, );
                     } catch {
                         // callBack ( false );

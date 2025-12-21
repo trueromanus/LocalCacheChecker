@@ -4,7 +4,7 @@ globaloption CsEventClass enabled
 globaloption CsFileName Library.cs
 globaloption CsNameSpace LocalCacheCheckerLibrary
 globaloption CsClassName Library
-globaloption CppFileName LocalCacheChecker.h
+globaloption CppFileName localcachechecker.h
 
 # delegates
 

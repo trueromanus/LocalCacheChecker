@@ -13,7 +13,7 @@ jobs:
     - name: Install .NET Core
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
 
     - name: Restore dependencies
       run: dotnet restore src/LocalCacheChecker.csproj
@@ -41,7 +41,7 @@ jobs:
     - name: Install .NET Core
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
 
     - name: Restore dependencies
       run: dotnet restore src/LocalCacheChecker.csproj
@@ -69,7 +69,7 @@ jobs:
     - name: Install .NET Core
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
     - name: Publish x64 application
       run: dotnet publish -r linux-x64 -c Release --self-contained true src/LocalCacheChecker.csproj
     - name: Publish arm x64 application      
