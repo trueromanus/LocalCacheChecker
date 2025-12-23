@@ -8,10 +8,10 @@ namespace AnilibriaAPIClient {
 
         public static string ApiDomain = "https://api.anilibria.app";
 
-        static public async Task<ReleasesModel> GetPage ( int page, HttpClient httpClient ) {
+        static public async Task<ReleasesModel> GetPage ( int page, HttpClient httpClient, int countOnPages = 50 ) {
             var dictionary = new Dictionary<string, string> ();
             dictionary["page"] = page.ToString();
-            dictionary["limit"] = "50";
+            dictionary["limit"] = countOnPages.ToString();
             dictionary["f[sorting]"] = "FRESH_AT_DESC";
 
             var serializeOptions = new JsonSerializerOptions {

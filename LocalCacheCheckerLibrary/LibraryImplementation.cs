@@ -43,10 +43,17 @@ namespace LocalCacheCheckerLibrary {
             Task.Run (
                 async () => {
                     try {
-                        await SaveReleasesHelper.SaveReleases ( GetHttpClient (), false, path, false );
-                        //callback ( 1, );
+                        await SaveReleasesHelper.SaveLatestReleases (
+                            GetHttpClient (),
+                            path,
+                            countReleases,
+                            countPages,
+                            ( percent, count ) => {
+                                callback ( percent, count );
+                            }
+                        );
                     } catch {
-                        // callBack ( false );
+                        callback ( 100, 0 );
                     }
                 }
             );
@@ -56,10 +63,17 @@ namespace LocalCacheCheckerLibrary {
             Task.Run (
                 async () => {
                     try {
-                        await SaveReleasesHelper.SaveReleases ( GetHttpClient (), false, "", false );
-                        //callback ( true );
+                        await SaveReleasesHelper.SaveLatestReleases (
+                            GetHttpClient (),
+                            path,
+                            50,
+                            100,
+                            ( percent, count ) => {
+                                callback ( percent, count, 0 );
+                            }
+                        );
                     } catch {
-                        // callBack ( false );
+                        callback ( 100, 0, 0 );
                     }
                 }
             );

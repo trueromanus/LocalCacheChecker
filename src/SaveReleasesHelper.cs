@@ -64,6 +64,70 @@ namespace LocalCacheChecker {
             return (loadedEpisodes, loadedReleases, loadedTorrents);
         }
 
+        static public async Task SaveLatestReleases ( HttpClient httpClient, string folderToSaveCacheFiles, int countOnPages, int countPages, Action<int, int> callback ) {
+            var types = await ReadTypes ( folderToSaveCacheFiles );
+            var metadata = await ReadMetadata ( folderToSaveCacheFiles );
+            if ( metadata == null ) return;
+
+            Console.WriteLine ( "Try to read current releases, torrents and episodes" );
+
+            var allUpdatedReleases = new List<ReleaseDataModel> ();
+
+            for ( var i = 1; i < countPages; i++ ) {
+                Console.WriteLine ( $"Try to get page {i}" );
+                var page = await RequestMaker.GetPage ( i, httpClient, countOnPages );
+                var totalPages = page.Meta.Pagination.TotalPages;
+                Console.WriteLine ( "Total pages: " + totalPages );
+
+                var updatedReleases = page.Data
+                    .Where ( a => DateTimeOffset.Parse ( a.FreshAt ).ToUnixTimeSeconds () > metadata.LastReleaseTimeStamp )
+                    .ToList ();
+                if ( !updatedReleases.Any () ) {
+                    Console.WriteLine ( $"No changes in releases on page {i}!" );
+                    continue;
+                }
+
+                allUpdatedReleases.AddRange ( updatedReleases );
+
+                if ( updatedReleases.Count () != page.Data.Count () ) break;
+            }
+
+            if ( !allUpdatedReleases.Any () ) return;
+
+            var lastTimestamp = DateTimeOffset.Parse ( allUpdatedReleases.First ().FreshAt ).ToUnixTimeSeconds ();
+
+            var result = new List<ReleaseSaveModel> ();
+            var resultTorrents = new List<ReleaseTorrentSaveModel> ();
+            var resultVideos = new List<ReleaseSaveEpisodeModel> ();
+            await MapPageReleasesWithProgress ( httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, callback, allUpdatedReleases.Count () );
+
+            Console.WriteLine ( $"Read cache from disk..." );
+            var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache ( metadata, folderToSaveCacheFiles );
+            Console.WriteLine ( $"Readed cache from disk" );
+
+            var updatedIds = result.Select ( a => a.Id ).ToHashSet ();
+
+            var editedReleases = currentReleases
+                .Where ( a => !updatedIds.Contains ( a.Id ) )
+                .ToList ()
+                .Concat ( result )
+                .ToList ();
+            var updatedEpisodes = currentEpisodes
+                .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
+                .ToList ()
+                .Concat ( resultVideos )
+                .ToList ();
+            var updatedTorrents = currentTorrents
+                .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
+                .ToList ()
+                .Concat ( resultTorrents )
+                .ToList ();
+
+            Console.WriteLine ( $"Save loaded releases on disk..." );
+            await SaveLoadedItemsToFiles ( folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp );
+            Console.WriteLine ( $"Latest release successfully changed!" );
+        }
+
         static public async Task SaveReleases ( HttpClient httpClient, bool synchronizeFullReleases, string folderToSaveCacheFiles, bool isSaveBlocked ) {
             Console.WriteLine ( "Start synchronized releases..." );
 
@@ -274,6 +338,66 @@ namespace LocalCacheChecker {
             result.AddRange ( MapForSave ( actualReleases, relatedStuff, types ) );
         }
 
+        static async Task MapPageReleasesWithProgress (
+          HttpClient httpClient,
+          IEnumerable<ReleaseDataModel> releases,
+          List<ReleaseSaveModel> result,
+          List<ReleaseTorrentSaveModel> torrents,
+          TypesResultModel types,
+          List<ReleaseSaveEpisodeModel> episodes,
+          Action<int, int> callback,
+          int countReleases
+          ) {
+            var releaseProcessed = 0;
+            foreach ( var release in releases ) {
+                ReleaseOnlyCollectionsModel collections;
+                try {
+                    collections = await RequestMaker.GetReleaseInnerCollections ( httpClient, release.Id );
+                } catch ( Exception ex ) {
+                    Console.WriteLine ( $"Error while try get release info for {release.Id} {ex.Message}" );
+                    continue;
+                }
+
+                RemapEpisodes ( collections );
+
+                releaseProcessed++;
+                callback ( Convert.ToInt32 ( ( ( (float) releaseProcessed / (float) countReleases ) * 100 ) ), releaseProcessed );
+            }
+
+            var relatedStuff = await GetRelatedStuffForReleases ( httpClient, releases.Select ( a => a.Id ).ToList () );
+            torrents.AddRange (
+                relatedStuff.SelectMany (
+                    a => {
+                        return a.torrents
+                            .Select (
+                                torrent => new ReleaseTorrentSaveModel {
+                                    Id = torrent.Id,
+                                    Codec = torrent.Codec,
+                                    Description = torrent.Description,
+                                    Filename = torrent.Filename,
+                                    Hash = torrent.Hash,
+                                    Magnet = torrent.Magnet,
+                                    Quality = torrent.Quality,
+                                    Type = torrent.Type,
+                                    Size = torrent.Size,
+                                    ReleaseId = a.releaseId,
+                                    Seeders = torrent.Seeders,
+                                    Time = ParseDateTimeOffset ( torrent.UpdatedAt )
+                                }
+                            );
+                    }
+                )
+            );
+
+            episodes.AddRange (
+                relatedStuff
+                    .Where ( a => a.episodes.Any () ) // if no episodes no need to save it
+                    .Select ( a => new ReleaseSaveEpisodeModel { ReleaseId = a.releaseId, Items = a.episodes } )
+                    .ToList ()
+            );
+            result.AddRange ( MapForSave ( releases, relatedStuff, types ) );
+        }
+
         static long ParseDateTimeOffset ( string value ) {
             if ( string.IsNullOrEmpty ( value ) ) return 0;
 
@@ -320,6 +444,26 @@ namespace LocalCacheChecker {
 
         //fix domain and language issues
         static string RemakeDomain ( string url ) => url.Replace ( "cache.libria.fun", "cache-rfn.libria.fun" ).Replace ( "countryIso=US", "countryIso=RU" );
+
+        static void RemapEpisodes ( ReleaseOnlyCollectionsModel collections ) {
+            foreach ( var collection in collections.Episodes ) {
+                if ( collection.Preview?.Thumbnail?.Any () == true ) {
+                    collection.Preview = collection.Preview with { Thumbnail = "" };
+                }
+
+                if ( !string.IsNullOrEmpty ( collection.Hls720 ) ) collection.Hls720 = RemakeDomain ( collection.Hls720 );
+                if ( !string.IsNullOrEmpty ( collection.Hls1080 ) ) collection.Hls1080 = RemakeDomain ( collection.Hls1080 );
+                if ( !string.IsNullOrEmpty ( collection.Hls480 ) ) collection.Hls480 = RemakeDomain ( collection.Hls480 );
+            }
+
+            //reorder episodes from zero
+            var orderedEpisodes = collections.Episodes.OrderBy ( a => a.SortOrder );
+            var iterator = 0;
+            foreach ( var orderedEpisode in orderedEpisodes ) {
+                orderedEpisode.SortOrder = iterator;
+                iterator++;
+            }
+        }
 
         static async Task<IEnumerable<(int releaseId, IEnumerable<ReleaseTorrentModel> torrents, IEnumerable<ReleaseMemberModel> members, IEnumerable<ReleaseEpisodeModel> episodes)>> GetRelatedStuffForReleases ( HttpClient httpClient, IEnumerable<int> ids ) {
             var result = new List<(int, IEnumerable<ReleaseTorrentModel>, IEnumerable<ReleaseMemberModel>, IEnumerable<ReleaseEpisodeModel>)> ();
