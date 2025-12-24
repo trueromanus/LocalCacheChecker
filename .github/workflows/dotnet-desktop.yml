@@ -27,10 +27,10 @@ jobs:
       run: dotnet publish -r osx-arm64 -c Release --self-contained true LocalCacheCheckerLibrary/LocalCacheCheckerLibrary.csproj      
     - name: Rename binaries
       run: |
-        cp src/bin/Release/net10.0/osx-x64/publish/LocalCacheChecker.exe llc64
-        cp src/bin/Release/net10.0/osx-arm64/publish/LocalCacheChecker.exe llcarm64
-        cp TorrentStreamLibrary/bin/Release/net10.0/osx-x64/publish/TorrentStreamLibrary.dll lcc64.dylib
-        cp TorrentStreamLibrary/bin/Release/net10.0/osx-arm64/publish/TorrentStreamLibrary.dll lccarm64.dylib
+        cp src/bin/Release/net10.0/osx-x64/publish/LocalCacheChecker llc64
+        cp src/bin/Release/net10.0/osx-arm64/publish/LocalCacheChecker llcarm64
+        cp TorrentStreamLibrary/bin/Release/net10.0/osx-x64/publish/TorrentStreamLibrary.dylib lcc64.dylib
+        cp TorrentStreamLibrary/bin/Release/net10.0/osx-arm64/publish/TorrentStreamLibrary.dylib lccarm64.dylib
     - name: Upload x64 artifacts
       uses: actions/upload-artifact@v4
       with:
