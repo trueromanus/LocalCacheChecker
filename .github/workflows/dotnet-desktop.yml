@@ -116,7 +116,7 @@ jobs:
       run: dotnet publish -r linux-x64 -c Release --self-contained true LocalCacheCheckerLibrary/LocalCacheCheckerLibrary.csproj
     - name: Rename binaries
       run: |
-        cp src/bin/Release/net10.0/linux-x64/publish/LocalCacheChecker.exe llc64
+        cp src/bin/Release/net10.0/linux-x64/publish/LocalCacheChecker llc64
         cp LocalCacheCheckerLibrary/bin/Release/net10.0/linux-x64/publish/LocalCacheCheckerLibrary.dll lcc64.so
     - uses: actions/upload-artifact@v4
       with:
@@ -141,7 +141,7 @@ jobs:
       run: dotnet publish -r linux-arm64 -c Release --self-contained true LocalCacheCheckerLibrary/LocalCacheCheckerLibrary.csproj
     - name: Rename binaries
       run: |
-        cp src/bin/Release/net10.0/linux-arm64/publish/LocalCacheChecker.exe llcarm64
+        cp src/bin/Release/net10.0/linux-arm64/publish/LocalCacheChecker llcarm64
         cp LocalCacheCheckerLibrary/bin/Release/net10.0/linux-arm64/publish/LocalCacheCheckerLibrary.dll lccarm64.so
     - uses: actions/upload-artifact@v4
       with:
