@@ -24,22 +24,22 @@ namespace LocalCacheCheckerLibrary {
             );
         }
 
-        public static partial void SynchronizeChangedReleasesInternal ( int maximumPages, string path, ChangedReleasesCallBack callBack ) {
+        public static partial void SynchronizeChangedReleasesInternal ( int maximumPages, string path, LatestReleasesProgress callBack, RoutineTypesCallBack finalCallBack ) {
             Console.WriteLine ( $"SynchronizeChangedReleasesInternal:maximumPages={maximumPages},path={path}" );
             Task.Run (
                 async () => {
                     try {
-                        await SaveReleasesHelper.SaveReleases ( GetHttpClient (), false, path, false );
-                        callBack ( true );
+                        await SaveReleasesHelper.SaveChangedReleases ( GetHttpClient (), path, 50, 10, ( percent, releases ) => { } );
+                        finalCallBack ( true );
                     } catch ( Exception ex ) {
                         Console.WriteLine ( $"SynchronizeChangedReleasesInternal:failed " + ex.Message );
-                        callBack ( false );
+                        finalCallBack ( false );
                     }
                 }
             );
         }
 
-        public static partial void SynchronizeLatestReleasesInternal ( int countReleases, int countPages, string path, LatestReleasesProgress callback ) {
+        public static partial void SynchronizeLatestReleasesInternal ( int countReleases, int countPages, string path, LatestReleasesProgress callback, RoutineTypesCallBack finalCallBack ) {
             Task.Run (
                 async () => {
                     try {
@@ -52,28 +52,9 @@ namespace LocalCacheCheckerLibrary {
                                 callback ( percent, count );
                             }
                         );
+                        finalCallBack ( true );
                     } catch {
-                        callback ( 100, 0 );
-                    }
-                }
-            );
-        }
-
-        public static partial void SynchronizeFullReleasesInternal ( string path, FullReleasesProgress callback ) {
-            Task.Run (
-                async () => {
-                    try {
-                        await SaveReleasesHelper.SaveLatestReleases (
-                            GetHttpClient (),
-                            path,
-                            50,
-                            100,
-                            ( percent, count ) => {
-                                callback ( percent, count, 0 );
-                            }
-                        );
-                    } catch {
-                        callback ( 100, 0, 0 );
+                        finalCallBack ( false );
                     }
                 }
             );

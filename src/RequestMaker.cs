@@ -21,7 +21,7 @@ namespace AnilibriaAPIClient {
             try {
                 pageContent = await httpClient.GetAsync ( $"{ApiDomain}/api/v1/anime/catalog/releases?" + string.Join ( "&", dictionary.Select ( a => $"{a.Key}={a.Value}" ) ) );
             } catch ( Exception ex ) {
-                throw new Exception ( $"Can't make HTTP request for page {page}", ex );
+                throw new Exception ( $"Can't make HTTP request for page {page}: {ex.Message}", ex );
             }
             if ( pageContent == null ) throw new Exception ( $"Can't read content for page {page}" );
 

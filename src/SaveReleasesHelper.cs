@@ -7,11 +7,11 @@ namespace LocalCacheChecker {
 
     public class SaveReleasesHelper {
 
-        static async Task<int> SaveEpisodesAsFewFiles ( string folderToSaveCacheFiles, List<ReleaseSaveEpisodeModel> allEpisodes ) {
+        static async Task<int> SaveEpisodesAsFewFiles ( string folderToSaveCacheFiles, List<ReleaseSaveEpisodeModel> allEpisodes, string extension ) {
             var countInPart = 200;
             var partsCount = ( allEpisodes.Count () / countInPart ) + 1;
             for ( var i = 0; i < partsCount; i++ ) {
-                var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}.json" );
+                var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}{extension}" );
                 Console.WriteLine ( $"Saving episodes to file {Path.GetFullPath ( episodesPath )} items" );
 
                 var items = allEpisodes.Skip ( i * countInPart ).Take ( countInPart ).ToList ();
@@ -21,11 +21,11 @@ namespace LocalCacheChecker {
             return partsCount;
         }
 
-        static async Task<int> SaveReleasesAsFewFiles ( string folderToSaveCacheFiles, List<ReleaseSaveModel> allReleases ) {
+        static async Task<int> SaveReleasesAsFewFiles ( string folderToSaveCacheFiles, List<ReleaseSaveModel> allReleases, string extension ) {
             var countInPart = 300;
             var partsCount = ( allReleases.Count () / countInPart ) + 1;
             for ( var i = 0; i < partsCount; i++ ) {
-                var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"releases{i}.json" );
+                var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"releases{i}{extension}" );
                 Console.WriteLine ( $"Saving releases to file {Path.GetFullPath ( episodesPath )} items" );
 
                 var items = allReleases.Skip ( i * countInPart ).Take ( countInPart ).ToList ();
@@ -35,14 +35,16 @@ namespace LocalCacheChecker {
             return partsCount;
         }
 
-        static async Task<(IEnumerable<ReleaseSaveEpisodeModel> episodes, IEnumerable<ReleaseSaveModel> releases, IEnumerable<ReleaseTorrentSaveModel> torrents)> ReadCurrentCache ( MetadataModel metadata, string folderToSaveCacheFiles ) {
+        static async Task<(IEnumerable<ReleaseSaveEpisodeModel> episodes, IEnumerable<ReleaseSaveModel> releases, IEnumerable<ReleaseTorrentSaveModel> torrents)> ReadCurrentCache ( MetadataModel metadata, string folderToSaveCacheFiles, bool asCache = false ) {
             var loadedEpisodes = new List<ReleaseSaveEpisodeModel> ();
             var loadedReleases = new List<ReleaseSaveModel> ();
             var loadedTorrents = new List<ReleaseTorrentSaveModel> ();
 
+            var extension = asCache ? ".cache" : ".json";
+
             var countReleases = metadata.CountReleases;
             for ( var i = 0; i < countReleases; i++ ) {
-                var releasesPart = Path.Combine ( folderToSaveCacheFiles, $"releases{i}.json" );
+                var releasesPart = Path.Combine ( folderToSaveCacheFiles, $"releases{i}{extension}" );
                 var releasesPartJson = await File.ReadAllTextAsync ( releasesPart );
                 var deserialized = DeserializeFromJson<List<ReleaseSaveModel>> ( releasesPartJson );
                 if ( deserialized != null ) loadedReleases.AddRange ( deserialized );
@@ -50,13 +52,13 @@ namespace LocalCacheChecker {
 
             var countEpisodes = metadata.CountEpisodes;
             for ( var i = 0; i < countEpisodes; i++ ) {
-                var episodesPart = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}.json" );
+                var episodesPart = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}{extension}" );
                 var partJson = await File.ReadAllTextAsync ( episodesPart );
                 var deserialized = DeserializeFromJson<List<ReleaseSaveEpisodeModel>> ( partJson );
                 if ( deserialized != null ) loadedEpisodes.AddRange ( deserialized );
             }
 
-            var torrents = Path.Combine ( folderToSaveCacheFiles, $"torrents.json" );
+            var torrents = Path.Combine ( folderToSaveCacheFiles, $"torrents{extension}" );
             var fullJson = await File.ReadAllTextAsync ( torrents );
             var deserializedTorrens = DeserializeFromJson<List<ReleaseTorrentSaveModel>> ( fullJson );
             if ( deserializedTorrens != null ) loadedTorrents.AddRange ( deserializedTorrens );
@@ -96,13 +98,15 @@ namespace LocalCacheChecker {
 
             var lastTimestamp = DateTimeOffset.Parse ( allUpdatedReleases.First ().FreshAt ).ToUnixTimeSeconds ();
 
+            Console.WriteLine ("Get data for updated releases...");
             var result = new List<ReleaseSaveModel> ();
             var resultTorrents = new List<ReleaseTorrentSaveModel> ();
             var resultVideos = new List<ReleaseSaveEpisodeModel> ();
             await MapPageReleasesWithProgress ( httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, callback, allUpdatedReleases.Count () );
+            Console.WriteLine ( "Got data for updated releases" );
 
             Console.WriteLine ( $"Read cache from disk..." );
-            var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache ( metadata, folderToSaveCacheFiles );
+            var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache ( metadata, folderToSaveCacheFiles, asCache: true );
             Console.WriteLine ( $"Readed cache from disk" );
 
             var updatedIds = result.Select ( a => a.Id ).ToHashSet ();
@@ -124,8 +128,69 @@ namespace LocalCacheChecker {
                 .ToList ();
 
             Console.WriteLine ( $"Save loaded releases on disk..." );
-            await SaveLoadedItemsToFiles ( folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp );
+            await SaveLoadedItemsToFiles ( folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp, asCache: true );
             Console.WriteLine ( $"Latest release successfully changed!" );
+        }
+
+        static public async Task SaveChangedReleases ( HttpClient httpClient, string folderToSaveCacheFiles, int countOnPages, int countPages, Action<int, int> callback ) {
+            var types = await ReadTypes ( folderToSaveCacheFiles );
+            var metadata = await ReadMetadata ( folderToSaveCacheFiles );
+            if ( metadata == null ) return;
+
+            Console.WriteLine ( "Try to read current relases, torrents and episodes" );
+
+            var allUpdatedReleases = new List<ReleaseDataModel> ();
+
+            for ( var i = 1; i < countPages; i++ ) {
+                Console.WriteLine ( $"Try to get page {i}" );
+                var page = await RequestMaker.GetPage ( i, httpClient, countOnPages );
+                var totalPages = page.Meta.Pagination.TotalPages;
+                Console.WriteLine ( "Total pages: " + totalPages );
+
+                var updatedReleases = page.Data
+                    .Where ( a => DateTimeOffset.Parse ( a.FreshAt ).ToUnixTimeSeconds () > metadata.LastReleaseTimeStamp )
+                    .ToList ();
+                if ( !updatedReleases.Any () ) {
+                    Console.WriteLine ( $"No changes in releases on page {i}!" );
+                    continue;
+                }
+
+                allUpdatedReleases.AddRange ( updatedReleases );
+
+                if ( updatedReleases.Count () != page.Data.Count () ) break;
+            }
+
+
+            if ( !allUpdatedReleases.Any () ) return;
+
+            var lastTimestamp = DateTimeOffset.Parse ( allUpdatedReleases.First ().FreshAt ).ToUnixTimeSeconds ();
+
+            var result = new List<ReleaseSaveModel> ();
+            var resultTorrents = new List<ReleaseTorrentSaveModel> ();
+            var resultVideos = new List<ReleaseSaveEpisodeModel> ();
+            await MapPageReleasesWithProgress ( httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, callback, allUpdatedReleases.Count() );
+
+            var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache ( metadata, folderToSaveCacheFiles, asCache: true );
+
+            var updatedIds = result.Select ( a => a.Id ).ToHashSet ();
+
+            var editedReleases = currentReleases
+                .Where ( a => !updatedIds.Contains ( a.Id ) )
+                .ToList ()
+                .Concat ( result )
+                .ToList ();
+            var updatedEpisodes = currentEpisodes
+                .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
+                .ToList ()
+                .Concat ( resultVideos )
+                .ToList ();
+            var updatedTorrents = currentTorrents
+                .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
+                .ToList ()
+                .Concat ( resultTorrents )
+                .ToList ();
+
+            await SaveLoadedItemsToFiles ( folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp, asCache: true );
         }
 
         static public async Task SaveReleases ( HttpClient httpClient, bool synchronizeFullReleases, string folderToSaveCacheFiles, bool isSaveBlocked ) {
@@ -508,14 +573,18 @@ namespace LocalCacheChecker {
             List<ReleaseSaveModel> result,
             List<ReleaseTorrentSaveModel> resultTorrents,
             List<ReleaseSaveEpisodeModel> resultVideos,
-            long lastTimestamp ) {
-            var countReleaseFiles = await SaveReleasesAsFewFiles ( folderToSaveCacheFiles, result );
+            long lastTimestamp,
+            bool asCache = false ) {
 
-            var torrentPath = Path.Combine ( folderToSaveCacheFiles, "torrents.json" );
+            var extension = asCache ? ".cache" : ".json";
+
+            var countReleaseFiles = await SaveReleasesAsFewFiles ( folderToSaveCacheFiles, result, extension );
+
+            var torrentPath = Path.Combine ( folderToSaveCacheFiles, $"torrents{extension}" );
             Console.WriteLine ( $"Saving torrents to file {Path.GetFullPath ( torrentPath )} items" );
             await File.WriteAllTextAsync ( torrentPath, SerializeToJson ( resultTorrents ) );
 
-            var countEpisodeFiles = await SaveEpisodesAsFewFiles ( folderToSaveCacheFiles, resultVideos );
+            var countEpisodeFiles = await SaveEpisodesAsFewFiles ( folderToSaveCacheFiles, resultVideos, extension );
 
             var metadataPath = Path.Combine ( folderToSaveCacheFiles, "metadata" );
             Console.WriteLine ( $"Saving metadata to file {Path.GetFullPath ( metadataPath )} items" );
