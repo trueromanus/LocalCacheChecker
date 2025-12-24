@@ -21,16 +21,36 @@ jobs:
       run: dotnet publish -r osx-x64 -c Release --self-contained true src/LocalCacheChecker.csproj
     - name: Publish arm64 application
       run: dotnet publish -r osx-arm64 -c Release --self-contained true src/LocalCacheChecker.csproj
+    - name: Publish library x64 application
+      run: dotnet publish -r osx-x64 -c Release --self-contained true LocalCacheCheckerLibrary/LocalCacheCheckerLibrary.csproj
+    - name: Publish library arm64 application
+      run: dotnet publish -r osx-arm64 -c Release --self-contained true LocalCacheCheckerLibrary/LocalCacheCheckerLibrary.csproj      
+    - name: Rename binaries
+      run: |
+        cp src/bin/Release/net10.0/osx-x64/publish/LocalCacheChecker.exe llc64
+        cp src/bin/Release/net10.0/osx-arm64/publish/LocalCacheChecker.exe llcarm64
+        cp TorrentStreamLibrary/bin/Release/net10.0/osx-x64/publish/TorrentStreamLibrary.dll lcc64.dylib
+        cp TorrentStreamLibrary/bin/Release/net10.0/osx-arm64/publish/TorrentStreamLibrary.dll lccarm64.dylib
     - name: Upload x64 artifacts
       uses: actions/upload-artifact@v4
       with:
         name: macos64
-        path: src/bin/Release/net8.0/osx-x64/publish/LocalCacheChecker
+        path: llc64
     - name: Upload arm64 artifacts
       uses: actions/upload-artifact@v4
       with:
         name: macosarm64
-        path: src/bin/Release/net8.0/osx-arm64/publish/LocalCacheChecker
+        path: llcarm64
+    - name: Upload x64 artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: macoslib64
+        path: lcc64.dylib
+    - name: Upload arm64 artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: macoslibarm64
+        path: lccarm64.dylib
         
   windows64:
     runs-on: windows-latest
@@ -46,19 +66,39 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore src/LocalCacheChecker.csproj
     - name: Publish x64 application
-      run: dotnet publish -r win-x64 -c Release -p:PublishAot=false --self-contained true -p:PublishSingleFile=true src/LocalCacheChecker.csproj
+      run: dotnet publish -r win-x64 -c Release --self-contained true src/LocalCacheChecker.csproj
     - name: Publish arm64 application
       run: dotnet publish -r win-arm64 -c Release --self-contained true src/LocalCacheChecker.csproj
+    - name: Publish library x64 application
+      run: dotnet publish -r win-x64 -c Release --self-contained true LocalCacheCheckerLibrary/LocalCacheCheckerLibrary.csproj
+    - name: Publish library arm64 application
+      run: dotnet publish -r win-arm64 -c Release --self-contained true LocalCacheCheckerLibrary/LocalCacheCheckerLibrary.csproj
+    - name: Rename binaries
+      run: |
+        cp src/bin/Release/net10.0/win-x64/publish/LocalCacheChecker.exe llc64.exe
+        cp src/bin/Release/net10.0/win-arm64/publish/LocalCacheChecker.exe llcarm64.exe
+        cp TorrentStreamLibrary/bin/Release/net10.0/linux-x64/publish/TorrentStreamLibrary.dll lcc64.dll
+        cp TorrentStreamLibrary/bin/Release/net10.0/linux-arm64/publish/TorrentStreamLibrary.dll lccarm64.dll
     - name: Upload x64 artifacts
       uses: actions/upload-artifact@v4
       with:
         name: windows64
-        path: src/bin/Release/net8.0/win-x64/publish/LocalCacheChecker.exe
+        path: llc64.exe
     - name: Upload arm64 artifacts
       uses: actions/upload-artifact@v4
       with:
         name: windowsarm64
-        path: src/bin/Release/net8.0/win-arm64/publish/LocalCacheChecker.exe
+        path: llcarm64.exe
+    - name: Upload x64 artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: windowslib64
+        path: lcc64.dll
+    - name: Upload arm64 artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: windowslibarm64
+        path: lccarm64.dll
         
   linux64:
     runs-on: ubuntu-latest
@@ -72,13 +112,42 @@ jobs:
         dotnet-version: 10.0.x
     - name: Publish x64 application
       run: dotnet publish -r linux-x64 -c Release --self-contained true src/LocalCacheChecker.csproj
-    - name: Publish arm x64 application      
-      run: dotnet publish -r linux-arm64 -c Release -p:PublishAot=false --self-contained true -p:PublishSingleFile=true src/LocalCacheChecker.csproj
+    - name: Publish library x64 application
+      run: dotnet publish -r linux-x64 -c Release --self-contained true LocalCacheCheckerLibrary/LocalCacheCheckerLibrary.csproj
+    - name: Rename binaries
+      run: |
+        cp src/bin/Release/net10.0/win-x64/publish/LocalCacheChecker.exe llc64
+        cp TorrentStreamLibrary/bin/Release/net10.0/linux-x64/publish/TorrentStreamLibrary.dll lcc64.so
     - uses: actions/upload-artifact@v4
       with:
         name: linux64
-        path: src/bin/Release/net8.0/linux-x64/publish/LocalCacheChecker
+        path: llc64
+    - uses: actions/upload-artifact@v4
+      with:
+        name: linuxlib64
+        path: lcc64.so
+  linuxarm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+    - name: Publish x64 application
+      run: dotnet publish -r linux-arm64 -c Release --self-contained true src/LocalCacheChecker.csproj
+    - name: Publish library x64 application
+      run: dotnet publish -r linux-arm64 -c Release --self-contained true LocalCacheCheckerLibrary/LocalCacheCheckerLibrary.csproj
+    - name: Rename binaries
+      run: |
+        cp src/bin/Release/net10.0/win-x64/publish/LocalCacheChecker.exe llcarm64
+        cp TorrentStreamLibrary/bin/Release/net10.0/linux-x64/publish/TorrentStreamLibrary.dll lccarm64.so
     - uses: actions/upload-artifact@v4
       with:
         name: linuxarm64
-        path: src/bin/Release/net8.0/linux-arm64/publish/LocalCacheChecker
+        path: llcarm64
+    - uses: actions/upload-artifact@v4
+      with:
+        name: linuxlibarm64
+        path: lccarm64.so   
