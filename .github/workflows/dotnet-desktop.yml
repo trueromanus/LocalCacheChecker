@@ -29,8 +29,8 @@ jobs:
       run: |
         cp src/bin/Release/net10.0/osx-x64/publish/LocalCacheChecker llc64
         cp src/bin/Release/net10.0/osx-arm64/publish/LocalCacheChecker llcarm64
-        cp LocalCacheCheckerLibrary/bin/Release/net10.0/osx-x64/publish/LocalCacheChecker.dylib lcc64.dylib
-        cp LocalCacheCheckerLibrary/bin/Release/net10.0/osx-arm64/publish/LocalCacheChecker.dylib lccarm64.dylib
+        cp LocalCacheCheckerLibrary/bin/Release/net10.0/osx-x64/publish/LocalCacheCheckerLibrary.dylib lcc64.dylib
+        cp LocalCacheCheckerLibrary/bin/Release/net10.0/osx-arm64/publish/LocalCacheCheckerLibrary.dylib lccarm64.dylib
     - name: Upload x64 artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -77,8 +77,8 @@ jobs:
       run: |
         cp src/bin/Release/net10.0/win-x64/publish/LocalCacheChecker.exe llc64.exe
         cp src/bin/Release/net10.0/win-arm64/publish/LocalCacheChecker.exe llcarm64.exe
-        cp LocalCacheCheckerLibrary/bin/Release/net10.0/linux-x64/publish/LocalCacheChecker.dll lcc64.dll
-        cp LocalCacheCheckerLibrary/bin/Release/net10.0/linux-arm64/publish/LocalCacheChecker.dll lccarm64.dll
+        cp LocalCacheCheckerLibrary/bin/Release/net10.0/linux-x64/publish/LocalCacheCheckerLibrary.dll lcc64.dll
+        cp LocalCacheCheckerLibrary/bin/Release/net10.0/linux-arm64/publish/LocalCacheCheckerLibrary.dll lccarm64.dll
     - name: Upload x64 artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -117,7 +117,7 @@ jobs:
     - name: Rename binaries
       run: |
         cp src/bin/Release/net10.0/win-x64/publish/LocalCacheChecker.exe llc64
-        cp LocalCacheCheckerLibrary/bin/Release/net10.0/linux-x64/publish/LocalCacheChecker.dll lcc64.so
+        cp LocalCacheCheckerLibrary/bin/Release/net10.0/linux-x64/publish/LocalCacheCheckerLibrary.dll lcc64.so
     - uses: actions/upload-artifact@v4
       with:
         name: linux64
@@ -142,7 +142,7 @@ jobs:
     - name: Rename binaries
       run: |
         cp src/bin/Release/net10.0/win-x64/publish/LocalCacheChecker.exe llcarm64
-        cp LocalCacheCheckerLibrary/bin/Release/net10.0/linux-x64/publish/LocalCacheChecker.dll lccarm64.so
+        cp LocalCacheCheckerLibrary/bin/Release/net10.0/linux-x64/publish/LocalCacheCheckerLibrary.dll lccarm64.so
     - uses: actions/upload-artifact@v4
       with:
         name: linuxarm64
