@@ -9,8 +9,8 @@ namespace LocalCacheChecker.SaveModels {
 
         public long Time { get; set; }
 
-        [JsonIgnore ( Condition = JsonIgnoreCondition.WhenWritingDefault )]
-        private new string UpdatedAt { get; init; } = "";
+        [JsonIgnore]
+        public new string UpdatedAt { get; init; } = "";
 
     }
 
