@@ -98,6 +98,26 @@ namespace LocalCacheCheckerLibrary {
             );
         }
 
+        public static partial void SynchronizePostersInternal ( string cachePath, bool forceAll, LatestReleasesProgress callback, RoutineTypesCallBack finalCallBack ) {
+            Task.Run (
+                async () => {
+                    try {
+                        await SaveReleasesHelper.SynchronizeAllPosters (
+                            GetHttpClient (),
+                            cachePath,
+                            ( percent, count ) => {
+                                callback ( percent, count );
+                            }
+                        );
+                        finalCallBack ( true );
+                    } catch ( Exception ex ) {
+                        Console.WriteLine ( "SynchronizePostersInternal: " + ex.Message );
+                        finalCallBack ( false );
+                    }
+                }
+            );
+        }
+
     }
 
 }

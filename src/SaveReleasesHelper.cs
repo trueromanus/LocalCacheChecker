@@ -45,17 +45,21 @@ namespace LocalCacheChecker {
             var countReleases = metadata.CountReleases;
             for ( var i = 0; i < countReleases; i++ ) {
                 var releasesPart = Path.Combine ( folderToSaveCacheFiles, $"releases{i}{extension}" );
-                var releasesPartJson = await File.ReadAllTextAsync ( releasesPart );
-                var deserialized = DeserializeFromJson<List<ReleaseSaveModel>> ( releasesPartJson );
-                if ( deserialized != null ) loadedReleases.AddRange ( deserialized );
+                if ( File.Exists ( releasesPart ) ) {
+                    var releasesPartJson = await File.ReadAllTextAsync ( releasesPart );
+                    var deserialized = DeserializeFromJson<List<ReleaseSaveModel>> ( releasesPartJson );
+                    if ( deserialized != null ) loadedReleases.AddRange ( deserialized );
+                }
             }
 
             var countEpisodes = metadata.CountEpisodes;
             for ( var i = 0; i < countEpisodes; i++ ) {
                 var episodesPart = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}{extension}" );
-                var partJson = await File.ReadAllTextAsync ( episodesPart );
-                var deserialized = DeserializeFromJson<List<ReleaseSaveEpisodeModel>> ( partJson );
-                if ( deserialized != null ) loadedEpisodes.AddRange ( deserialized );
+                if ( File.Exists ( episodesPart ) ) {
+                    var partJson = await File.ReadAllTextAsync ( episodesPart );
+                    var deserialized = DeserializeFromJson<List<ReleaseSaveEpisodeModel>> ( partJson );
+                    if ( deserialized != null ) loadedEpisodes.AddRange ( deserialized );
+                }
             }
 
             var torrents = Path.Combine ( folderToSaveCacheFiles, $"torrents{extension}" );
@@ -98,7 +102,7 @@ namespace LocalCacheChecker {
 
             var lastTimestamp = DateTimeOffset.Parse ( allUpdatedReleases.First ().FreshAt ).ToUnixTimeSeconds ();
 
-            Console.WriteLine ("Get data for updated releases...");
+            Console.WriteLine ( "Get data for updated releases..." );
             var result = new List<ReleaseSaveModel> ();
             var resultTorrents = new List<ReleaseTorrentSaveModel> ();
             var resultVideos = new List<ReleaseSaveEpisodeModel> ();
@@ -168,7 +172,7 @@ namespace LocalCacheChecker {
             var result = new List<ReleaseSaveModel> ();
             var resultTorrents = new List<ReleaseTorrentSaveModel> ();
             var resultVideos = new List<ReleaseSaveEpisodeModel> ();
-            await MapPageReleasesWithProgress ( httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, callback, allUpdatedReleases.Count() );
+            await MapPageReleasesWithProgress ( httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, callback, allUpdatedReleases.Count () );
 
             var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache ( metadata, folderToSaveCacheFiles, asCache: true );
 
@@ -191,6 +195,27 @@ namespace LocalCacheChecker {
                 .ToList ();
 
             await SaveLoadedItemsToFiles ( folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp, asCache: true );
+        }
+
+        static public async Task SynchronizeAllPosters ( HttpClient httpClient, string folderToSaveCacheFiles, Action<int, int> callback ) {
+            var metadata = await ReadMetadata ( folderToSaveCacheFiles );
+            if ( metadata == null ) return;
+            var (_, currentReleases, _) = await ReadCurrentCache ( metadata, folderToSaveCacheFiles, asCache: true );
+
+            var countReleases = currentReleases.Count ();
+            var countProcessed = 0;
+            foreach ( var currentRelease in currentReleases ) {
+                var poster = RequestMaker.ApiDomain + currentRelease.Poster;
+
+                Console.WriteLine ( "Try to download poster " + poster );
+                await RequestMaker.DownloadPoster ( httpClient, poster, Path.Combine ( folderToSaveCacheFiles, $"imagecache/{currentRelease.Id}.image" ) );
+                await Task.Delay ( 1000 );
+                Console.WriteLine ( "Poster " + poster + " downloaded" );
+
+                countProcessed++;
+                var percent = ( (double) countProcessed / (double) countReleases ) * 100;
+                callback ( Convert.ToInt32 ( percent ), countProcessed );
+            }
         }
 
         static public async Task SaveReleases ( HttpClient httpClient, bool synchronizeFullReleases, string folderToSaveCacheFiles, bool isSaveBlocked ) {

@@ -53,3 +53,9 @@ globalmethod LoadCache
 stringansi CacheFile
 stringansi CachePath
 method-ShareCacheCallBack CallBack
+
+globalmethod SynchronizePosters
+stringansi CachePath
+boolean ForceAll
+method-LatestReleasesProgress Callback
+method-RoutineTypesCallBack FinalCallBack

@@ -22,6 +22,8 @@ internal class Program {
         if ( synchronizeTypes ) Console.WriteLine ( "Types: enabled" );
         bool isSaveBlocked = args.Any ( a => a.ToLowerInvariant () == "-saveblocked" );
         if ( isSaveBlocked ) Console.WriteLine ( "Blocked list will be saved" );
+        bool isSavePosters = args.Any ( a => a.ToLowerInvariant () == "-saveposters" );
+        if ( isSavePosters ) Console.WriteLine ( "Posters will be saved" );
 
         string folderToSaveCacheFiles = "";
 
@@ -40,6 +42,7 @@ internal class Program {
         if ( synchronizeReleases ) await SaveReleases ( httpClient, synchronizeFullReleases, folderToSaveCacheFiles, isSaveBlocked );
         if ( synchronizeSchedule ) await SaveRoutineHelpers.SaveSchedule ( httpClient, folderToSaveCacheFiles );
         if ( synchronizeFranchises ) await SaveRoutineHelpers.SaveReleaseSeries ( httpClient, folderToSaveCacheFiles );
+        if ( isSavePosters ) await SynchronizeAllPosters ( httpClient, folderToSaveCacheFiles, ( percent, count ) => { } );
     }
 
 }

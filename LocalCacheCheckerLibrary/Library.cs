@@ -44,5 +44,12 @@ namespace LocalCacheCheckerLibrary {
 
         public static partial void LoadCacheInternal ( string cacheFile, string cachePath, ShareCacheCallBack callBack );
 
+        [UnmanagedCallersOnly ( EntryPoint = "synchronize_posters" )]
+        public static void SynchronizePosters ( nint cachePath, bool forceAll, nint callback, nint finalCallBack ) {
+            SynchronizePostersInternal(Marshal.PtrToStringAnsi(cachePath) ?? "", forceAll, Marshal.GetDelegateForFunctionPointer<LatestReleasesProgress>(callback), Marshal.GetDelegateForFunctionPointer<RoutineTypesCallBack>(finalCallBack));
+        }
+
+        public static partial void SynchronizePostersInternal ( string cachePath, bool forceAll, LatestReleasesProgress callback, RoutineTypesCallBack finalCallBack );
+
     }
 }

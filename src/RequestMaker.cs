@@ -10,8 +10,8 @@ namespace AnilibriaAPIClient {
 
         static public async Task<ReleasesModel> GetPage ( int page, HttpClient httpClient, int countOnPages = 50 ) {
             var dictionary = new Dictionary<string, string> ();
-            dictionary["page"] = page.ToString();
-            dictionary["limit"] = countOnPages.ToString();
+            dictionary["page"] = page.ToString ();
+            dictionary["limit"] = countOnPages.ToString ();
             dictionary["f[sorting]"] = "FRESH_AT_DESC";
 
             var serializeOptions = new JsonSerializerOptions {
@@ -36,7 +36,7 @@ namespace AnilibriaAPIClient {
             try {
                 var content = (ReleasesModel?) JsonSerializer.Deserialize ( jsonContent, typeof ( ReleasesModel ), ReadApiModelSerializerContext.Default );
                 return content == null ? throw new Exception ( $"Can't serialize response for page {page}" ) : content;
-            } catch (Exception ex) {
+            } catch ( Exception ex ) {
                 throw new Exception ( $"Can't deserialize content for page {page} - {jsonContent}", ex );
             }
         }
@@ -94,8 +94,20 @@ namespace AnilibriaAPIClient {
             }
             if ( string.IsNullOrEmpty ( jsonContent ) ) throw new Exception ( $"JSON content for {requestName} is empty!" );
 
-            var content = (T?)JsonSerializer.Deserialize ( jsonContent, typeof(T), ReadApiModelSerializerContext.Default );
+            var content = (T?) JsonSerializer.Deserialize ( jsonContent, typeof ( T ), ReadApiModelSerializerContext.Default );
             return content == null ? throw new Exception ( $"Can't serialize response for {requestName}" ) : content;
+        }
+
+        public static async Task DownloadPoster ( HttpClient httpClient, string url, string path ) {
+            HttpResponseMessage pageContent;
+            try {
+                pageContent = await httpClient.GetAsync ( url );
+            } catch ( Exception ex ) {
+                throw new Exception ( $"Can't make HTTP request for {url}", ex );
+            }
+            var stream = await pageContent.Content.ReadAsStreamAsync ();
+            using var file = File.Create ( path );
+            await stream.CopyToAsync ( file );
         }
 
     }

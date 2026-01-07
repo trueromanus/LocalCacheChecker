@@ -1,2 +1,2 @@
 ﻿dotnet publish -r win-x64 -c Release --self-contained true LocalCacheCheckerLibrary.csproj
-Copy-Item -Path "bin\Release\net10.0\win-x64\native\LocalCacheCheckerLibrary.dll" -Destination "C:/Users/truer/AppData/Local/EmptyFlow/AnilibriaDesktopClient/lccl64.dll"
+Copy-Item -Path "bin\Release\net10.0\win-x64\native\LocalCacheCheckerLibrary.dll" -Destination "C:/Users/truer/AppData/Local/EmptyFlow/AnilibriaDesktopClient/lcc64.dll"
