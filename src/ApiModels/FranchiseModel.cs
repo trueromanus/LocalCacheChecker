@@ -12,17 +12,17 @@
 
         public decimal? Rating { get; set; } = null;
 
-        public int LastYear { get; set; }
+        public int? LastYear { get; set; }
 
-        public int FirstYear { get; set; }
+        public int? FirstYear { get; set; }
 
-        public int TotalReleases { get; set; }
+        public int? TotalReleases { get; set; }
 
-        public int TotalEpisodes { get; set; }
+        public int? TotalEpisodes { get; set; }
 
         public string TotalDuration { get; set; } = "";
 
-        public int TotalDurationInSeconds { get; set; }
+        public int? TotalDurationInSeconds { get; set; }
 
         public FranchiseImageModel Image { get; set; } = new FranchiseImageModel();
 

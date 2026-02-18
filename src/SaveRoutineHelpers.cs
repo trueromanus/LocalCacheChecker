@@ -101,8 +101,8 @@ namespace LocalCacheChecker {
                     Titles = releasesItem.FranchiseReleases.Select ( a => a.Release.Name.Main ).ToList (),
                     Posters = releasesItem.FranchiseReleases.Select ( a => a.Release.Poster.Src ).ToList (),
                     Title = franchise.Name,
-                    Sec = franchise.TotalDurationInSeconds,
-                    Eps = franchise.TotalEpisodes,
+                    Sec = franchise.TotalDurationInSeconds ?? 0,
+                    Eps = franchise.TotalEpisodes ?? 0,
                     Rat = franchise.Rating ?? 0
                 };
                 result.Add ( model );
