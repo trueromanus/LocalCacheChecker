@@ -67,10 +67,12 @@ namespace LocalCacheCheckerLibrary {
                         SharingCacheHelper.SaveChacheToFolder ( cachePath, resultPath, posters, torrents, releaseCache );
 
                         var message = Marshal.StringToHGlobalAnsi ( "" );
-                        callBack ( false, message );
+                        callBack ( true, message );
                         Marshal.FreeHGlobal ( message );
 
                     } catch ( Exception ex ) {
+                        Console.WriteLine("Error while create share: " + ex.Message);
+
                         var message = Marshal.StringToHGlobalAnsi ( ex.Message );
                         callBack ( false, message );
                         Marshal.FreeHGlobal ( message );
@@ -86,10 +88,12 @@ namespace LocalCacheCheckerLibrary {
                         SharingCacheHelper.LoadFromFolder ( cacheFile, cachePath );
 
                         var message = Marshal.StringToHGlobalAnsi ( "" );
-                        callBack ( false, message );
+                        callBack (true, message );
                         Marshal.FreeHGlobal ( message );
 
                     } catch ( Exception ex ) {
+                        Console.WriteLine("Error while load share: " + ex.Message);
+
                         var message = Marshal.StringToHGlobalAnsi ( ex.Message );
                         callBack ( false, message );
                         Marshal.FreeHGlobal ( message );
