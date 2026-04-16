@@ -41,6 +41,12 @@ stringansi Path
 method-LatestReleasesProgress Callback
 method-RoutineTypesCallBack FinalCallBack
 
+globalmethod SynchronizeFullQuickReleases
+int32 CountPages
+stringansi Path
+method-LatestReleasesProgress Callback
+method-RoutineTypesCallBack FinalCallBack
+
 globalmethod ShareCache
 boolean Posters
 boolean Torrents

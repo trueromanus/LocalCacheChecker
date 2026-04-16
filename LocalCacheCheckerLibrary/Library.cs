@@ -30,6 +30,13 @@ namespace LocalCacheCheckerLibrary {
 
         public static partial void SynchronizeLatestReleasesInternal ( int countReleases, int countPages, string path, LatestReleasesProgress callback, RoutineTypesCallBack finalCallBack );
 
+        [UnmanagedCallersOnly ( EntryPoint = "synchronize_full_quick_releases" )]
+        public static void SynchronizeFullQuickReleases ( int countPages, nint path, nint callback, nint finalCallBack ) {
+            SynchronizeFullQuickReleasesInternal(countPages, Marshal.PtrToStringAnsi(path) ?? "", Marshal.GetDelegateForFunctionPointer<LatestReleasesProgress>(callback), Marshal.GetDelegateForFunctionPointer<RoutineTypesCallBack>(finalCallBack));
+        }
+
+        public static partial void SynchronizeFullQuickReleasesInternal ( int countPages, string path, LatestReleasesProgress callback, RoutineTypesCallBack finalCallBack );
+
         [UnmanagedCallersOnly ( EntryPoint = "share_cache" )]
         public static void ShareCache ( bool posters, bool torrents, bool releaseCache, nint cachePath, nint resultPath, nint callBack ) {
             ShareCacheInternal(posters, torrents, releaseCache, Marshal.PtrToStringAnsi(cachePath) ?? "", Marshal.PtrToStringAnsi(resultPath) ?? "", Marshal.GetDelegateForFunctionPointer<ShareCacheCallBack>(callBack));

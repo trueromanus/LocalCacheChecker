@@ -60,6 +60,30 @@ namespace LocalCacheCheckerLibrary {
             );
         }
 
+        public static partial void SynchronizeFullQuickReleasesInternal(int countPages, string path, LatestReleasesProgress callback, RoutineTypesCallBack finalCallBack)
+        {
+            Task.Run(
+                async () => {
+                    try
+                    {
+                        await SaveReleasesHelper.SaveFullReleases(
+                            GetHttpClient(),
+                            path,
+                            countPages,
+                            (percent, count) => {
+                                callback(percent, count);
+                            }
+                        );
+                        finalCallBack(true);
+                    }
+                    catch
+                    {
+                        finalCallBack(false);
+                    }
+                }
+            );
+        }
+
         public static partial void ShareCacheInternal ( bool posters, bool torrents, bool releaseCache, string cachePath, string resultPath, ShareCacheCallBack callBack ) {
             Task.Run (
                 () => {

@@ -2,7 +2,7 @@
   "profiles": {
     "LocalCacheChecker": {
       "commandName": "Project",
-      "commandLineArgs": "-releases -fullreleases",
+      "commandLineArgs": "-nextfullreleases",
       "environmentVariables": {
         "CACHE_PATH": "C:\\work\\Repositories\\LocalCacheChecker\\LocalCacheChecker\\cache"
       }

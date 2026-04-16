@@ -1,1 +1,1 @@
-﻿C:\work\Repositories\flowbridger.exe generate localcachechecker.fbschema -l="Embedded.CSharp.Import:."
+﻿C:\work\Repositories\flowbridger.exe generate localcachechecker.fbschema -l=Embedded.CSharp.Import:. Embedded.Cpp.RuntimeLoading:C:/work/Repositories/Anilibria.Qt/Repository/anilibria-winmaclinux/src/Classes/Services

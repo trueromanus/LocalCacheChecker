@@ -3,404 +3,553 @@ using LocalCacheChecker.ApiModels;
 using LocalCacheChecker.SaveModels;
 using static LocalCacheChecker.Helpers.JsonHelpers;
 
-namespace LocalCacheChecker {
+namespace LocalCacheChecker
+{
 
-    public class SaveReleasesHelper {
+    public class SaveReleasesHelper
+    {
 
-        static async Task<int> SaveEpisodesAsFewFiles ( string folderToSaveCacheFiles, List<ReleaseSaveEpisodeModel> allEpisodes, string extension ) {
+        static async Task<int> SaveEpisodesAsFewFiles(string folderToSaveCacheFiles, List<ReleaseSaveEpisodeModel> allEpisodes, string extension)
+        {
             var countInPart = 200;
-            var partsCount = ( allEpisodes.Count () / countInPart ) + 1;
-            for ( var i = 0; i < partsCount; i++ ) {
-                var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}{extension}" );
-                Console.WriteLine ( $"Saving episodes to file {Path.GetFullPath ( episodesPath )} items" );
+            var partsCount = (allEpisodes.Count() / countInPart) + 1;
+            for (var i = 0; i < partsCount; i++)
+            {
+                var episodesPath = Path.Combine(folderToSaveCacheFiles, $"episodes{i}{extension}");
+                Console.WriteLine($"Saving episodes to file {Path.GetFullPath(episodesPath)} items");
 
-                var items = allEpisodes.Skip ( i * countInPart ).Take ( countInPart ).ToList ();
-                if ( items.Any () ) await File.WriteAllTextAsync ( episodesPath, SerializeToJson ( items ) );
+                var items = allEpisodes.Skip(i * countInPart).Take(countInPart).ToList();
+                if (items.Any()) await File.WriteAllTextAsync(episodesPath, SerializeToJson(items));
             }
 
             return partsCount;
         }
 
-        static async Task<int> SaveReleasesAsFewFiles ( string folderToSaveCacheFiles, List<ReleaseSaveModel> allReleases, string extension ) {
+        static async Task<int> SaveReleasesAsFewFiles(string folderToSaveCacheFiles, List<ReleaseSaveModel> allReleases, string extension)
+        {
             var countInPart = 300;
-            var partsCount = ( allReleases.Count () / countInPart ) + 1;
-            for ( var i = 0; i < partsCount; i++ ) {
-                var episodesPath = Path.Combine ( folderToSaveCacheFiles, $"releases{i}{extension}" );
-                Console.WriteLine ( $"Saving releases to file {Path.GetFullPath ( episodesPath )} items" );
+            var partsCount = (allReleases.Count() / countInPart) + 1;
+            for (var i = 0; i < partsCount; i++)
+            {
+                var episodesPath = Path.Combine(folderToSaveCacheFiles, $"releases{i}{extension}");
+                Console.WriteLine($"Saving releases to file {Path.GetFullPath(episodesPath)} items");
 
-                var items = allReleases.Skip ( i * countInPart ).Take ( countInPart ).ToList ();
-                if ( items.Any () ) await File.WriteAllTextAsync ( episodesPath, SerializeToJson ( items ) );
+                var items = allReleases.Skip(i * countInPart).Take(countInPart).ToList();
+                if (items.Any()) await File.WriteAllTextAsync(episodesPath, SerializeToJson(items));
             }
 
             return partsCount;
         }
 
-        static async Task<(IEnumerable<ReleaseSaveEpisodeModel> episodes, IEnumerable<ReleaseSaveModel> releases, IEnumerable<ReleaseTorrentSaveModel> torrents)> ReadCurrentCache ( MetadataModel metadata, string folderToSaveCacheFiles, bool asCache = false ) {
-            var loadedEpisodes = new List<ReleaseSaveEpisodeModel> ();
-            var loadedReleases = new List<ReleaseSaveModel> ();
-            var loadedTorrents = new List<ReleaseTorrentSaveModel> ();
+        static async Task<(IEnumerable<ReleaseSaveEpisodeModel> episodes, IEnumerable<ReleaseSaveModel> releases, IEnumerable<ReleaseTorrentSaveModel> torrents)> ReadCurrentCache(MetadataModel metadata, string folderToSaveCacheFiles, bool asCache = false)
+        {
+            var loadedEpisodes = new List<ReleaseSaveEpisodeModel>();
+            var loadedReleases = new List<ReleaseSaveModel>();
+            var loadedTorrents = new List<ReleaseTorrentSaveModel>();
 
             var extension = asCache ? ".cache" : ".json";
 
             var countReleases = metadata.CountReleases;
-            for ( var i = 0; i < countReleases; i++ ) {
-                var releasesPart = Path.Combine ( folderToSaveCacheFiles, $"releases{i}{extension}" );
-                if ( File.Exists ( releasesPart ) ) {
-                    var releasesPartJson = await File.ReadAllTextAsync ( releasesPart );
-                    var deserialized = DeserializeFromJson<List<ReleaseSaveModel>> ( releasesPartJson );
-                    if ( deserialized != null ) loadedReleases.AddRange ( deserialized );
+            for (var i = 0; i < countReleases; i++)
+            {
+                var releasesPart = Path.Combine(folderToSaveCacheFiles, $"releases{i}{extension}");
+                if (File.Exists(releasesPart))
+                {
+                    var releasesPartJson = await File.ReadAllTextAsync(releasesPart);
+                    var deserialized = DeserializeFromJson<List<ReleaseSaveModel>>(releasesPartJson);
+                    if (deserialized != null) loadedReleases.AddRange(deserialized);
                 }
             }
 
             var countEpisodes = metadata.CountEpisodes;
-            for ( var i = 0; i < countEpisodes; i++ ) {
-                var episodesPart = Path.Combine ( folderToSaveCacheFiles, $"episodes{i}{extension}" );
-                if ( File.Exists ( episodesPart ) ) {
-                    var partJson = await File.ReadAllTextAsync ( episodesPart );
-                    var deserialized = DeserializeFromJson<List<ReleaseSaveEpisodeModel>> ( partJson );
-                    if ( deserialized != null ) loadedEpisodes.AddRange ( deserialized );
+            for (var i = 0; i < countEpisodes; i++)
+            {
+                var episodesPart = Path.Combine(folderToSaveCacheFiles, $"episodes{i}{extension}");
+                if (File.Exists(episodesPart))
+                {
+                    var partJson = await File.ReadAllTextAsync(episodesPart);
+                    var deserialized = DeserializeFromJson<List<ReleaseSaveEpisodeModel>>(partJson);
+                    if (deserialized != null) loadedEpisodes.AddRange(deserialized);
                 }
             }
 
-            var torrents = Path.Combine ( folderToSaveCacheFiles, $"torrents{extension}" );
-            var fullJson = await File.ReadAllTextAsync ( torrents );
-            var deserializedTorrens = DeserializeFromJson<List<ReleaseTorrentSaveModel>> ( fullJson );
-            if ( deserializedTorrens != null ) loadedTorrents.AddRange ( deserializedTorrens );
+            var torrents = Path.Combine(folderToSaveCacheFiles, $"torrents{extension}");
+            var fullJson = await File.ReadAllTextAsync(torrents);
+            var deserializedTorrens = DeserializeFromJson<List<ReleaseTorrentSaveModel>>(fullJson);
+            if (deserializedTorrens != null) loadedTorrents.AddRange(deserializedTorrens);
 
             return (loadedEpisodes, loadedReleases, loadedTorrents);
         }
 
-        static public async Task SaveLatestReleases ( HttpClient httpClient, string folderToSaveCacheFiles, int countOnPages, int countPages, Action<int, int> callback ) {
-            var types = await ReadTypes ( folderToSaveCacheFiles );
-            var metadata = await ReadMetadata ( folderToSaveCacheFiles );
-            if ( metadata == null ) return;
+        static public async Task SaveLatestReleases(HttpClient httpClient, string folderToSaveCacheFiles, int countOnPages, int countPages, Action<int, int> callback)
+        {
+            var types = await ReadTypes(folderToSaveCacheFiles);
+            var metadata = await ReadMetadata(folderToSaveCacheFiles);
+            if (metadata == null) return;
 
-            Console.WriteLine ( "Try to read current releases, torrents and episodes" );
+            Console.WriteLine("Try to read current releases, torrents and episodes");
 
-            var allUpdatedReleases = new List<ReleaseDataModel> ();
+            var allUpdatedReleases = new List<ReleaseDataModel>();
 
-            for ( var i = 1; i < countPages; i++ ) {
-                Console.WriteLine ( $"Try to get page {i}" );
-                var page = await RequestMaker.GetPage ( i, httpClient, countOnPages );
+            for (var i = 1; i < countPages; i++)
+            {
+                Console.WriteLine($"Try to get page {i}");
+                var page = await RequestMaker.GetPage(i, httpClient, countOnPages);
                 var totalPages = page.Meta.Pagination.TotalPages;
-                Console.WriteLine ( "Total pages: " + totalPages );
+                Console.WriteLine("Total pages: " + totalPages);
 
                 var updatedReleases = page.Data
-                    .Where ( a => DateTimeOffset.Parse ( a.FreshAt ).ToUnixTimeSeconds () > metadata.LastReleaseTimeStamp )
-                    .ToList ();
-                if ( !updatedReleases.Any () ) {
-                    Console.WriteLine ( $"No changes in releases on page {i}!" );
+                    .Where(a => DateTimeOffset.Parse(a.FreshAt).ToUnixTimeSeconds() > metadata.LastReleaseTimeStamp)
+                    .ToList();
+                if (!updatedReleases.Any())
+                {
+                    Console.WriteLine($"No changes in releases on page {i}!");
                     continue;
                 }
 
-                allUpdatedReleases.AddRange ( updatedReleases );
+                allUpdatedReleases.AddRange(updatedReleases);
 
-                if ( updatedReleases.Count () != page.Data.Count () ) break;
+                if (updatedReleases.Count() != page.Data.Count()) break;
             }
 
-            if ( !allUpdatedReleases.Any () ) return;
+            if (!allUpdatedReleases.Any()) return;
 
-            var lastTimestamp = DateTimeOffset.Parse ( allUpdatedReleases.First ().FreshAt ).ToUnixTimeSeconds ();
+            var lastTimestamp = DateTimeOffset.Parse(allUpdatedReleases.First().FreshAt).ToUnixTimeSeconds();
 
-            Console.WriteLine ( "Get data for updated releases..." );
-            var result = new List<ReleaseSaveModel> ();
-            var resultTorrents = new List<ReleaseTorrentSaveModel> ();
-            var resultVideos = new List<ReleaseSaveEpisodeModel> ();
-            await MapPageReleasesWithProgress ( httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, callback, allUpdatedReleases.Count () );
-            Console.WriteLine ( "Got data for updated releases" );
+            Console.WriteLine("Get data for updated releases...");
+            var result = new List<ReleaseSaveModel>();
+            var resultTorrents = new List<ReleaseTorrentSaveModel>();
+            var resultVideos = new List<ReleaseSaveEpisodeModel>();
+            await MapPageReleasesWithProgress(httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, callback, allUpdatedReleases.Count());
+            Console.WriteLine("Got data for updated releases");
 
-            Console.WriteLine ( $"Read cache from disk..." );
-            var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache ( metadata, folderToSaveCacheFiles, asCache: true );
-            Console.WriteLine ( $"Readed cache from disk" );
+            Console.WriteLine($"Read cache from disk...");
+            var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache(metadata, folderToSaveCacheFiles, asCache: true);
+            Console.WriteLine($"Readed cache from disk");
 
-            var updatedIds = result.Select ( a => a.Id ).ToHashSet ();
+            var updatedIds = result.Select(a => a.Id).ToHashSet();
 
             var editedReleases = currentReleases
-                .Where ( a => !updatedIds.Contains ( a.Id ) )
-                .ToList ()
-                .Concat ( result )
-                .ToList ();
+                .Where(a => !updatedIds.Contains(a.Id))
+                .ToList()
+                .Concat(result)
+                .ToList();
             var updatedEpisodes = currentEpisodes
-                .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
-                .ToList ()
-                .Concat ( resultVideos )
-                .ToList ();
+                .Where(a => !updatedIds.Contains(a.ReleaseId))
+                .ToList()
+                .Concat(resultVideos)
+                .ToList();
             var updatedTorrents = currentTorrents
-                .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
-                .ToList ()
-                .Concat ( resultTorrents )
-                .ToList ();
+                .Where(a => !updatedIds.Contains(a.ReleaseId))
+                .ToList()
+                .Concat(resultTorrents)
+                .ToList();
 
-            Console.WriteLine ( $"Save loaded releases on disk..." );
-            await SaveLoadedItemsToFiles ( folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp, asCache: true );
-            Console.WriteLine ( $"Latest release successfully changed!" );
+            Console.WriteLine($"Save loaded releases on disk...");
+            await SaveLoadedItemsToFiles(folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp, asCache: true);
+            Console.WriteLine($"Latest release successfully changed!");
         }
 
-        static public async Task SaveChangedReleases ( HttpClient httpClient, string folderToSaveCacheFiles, int countOnPages, int countPages, Action<int, int> callback ) {
-            var types = await ReadTypes ( folderToSaveCacheFiles );
-            var metadata = await ReadMetadata ( folderToSaveCacheFiles );
-            if ( metadata == null ) return;
+        static public async Task SaveChangedReleases(HttpClient httpClient, string folderToSaveCacheFiles, int countOnPages, int countPages, Action<int, int> callback)
+        {
+            var types = await ReadTypes(folderToSaveCacheFiles);
+            var metadata = await ReadMetadata(folderToSaveCacheFiles);
+            if (metadata == null) return;
 
-            Console.WriteLine ( "Try to read current relases, torrents and episodes" );
+            Console.WriteLine("Try to read current relases, torrents and episodes");
 
-            var allUpdatedReleases = new List<ReleaseDataModel> ();
+            var allUpdatedReleases = new List<ReleaseDataModel>();
 
-            for ( var i = 1; i < countPages; i++ ) {
-                Console.WriteLine ( $"Try to get page {i}" );
-                var page = await RequestMaker.GetPage ( i, httpClient, countOnPages );
+            for (var i = 1; i < countPages; i++)
+            {
+                Console.WriteLine($"Try to get page {i}");
+                var page = await RequestMaker.GetPage(i, httpClient, countOnPages);
                 var totalPages = page.Meta.Pagination.TotalPages;
-                Console.WriteLine ( "Total pages: " + totalPages );
+                Console.WriteLine("Total pages: " + totalPages);
 
                 var updatedReleases = page.Data
-                    .Where ( a => DateTimeOffset.Parse ( a.FreshAt ).ToUnixTimeSeconds () > metadata.LastReleaseTimeStamp )
-                    .ToList ();
-                if ( !updatedReleases.Any () ) {
-                    Console.WriteLine ( $"No changes in releases on page {i}!" );
+                    .Where(a => DateTimeOffset.Parse(a.FreshAt).ToUnixTimeSeconds() > metadata.LastReleaseTimeStamp)
+                    .ToList();
+                if (!updatedReleases.Any())
+                {
+                    Console.WriteLine($"No changes in releases on page {i}!");
                     continue;
                 }
 
-                allUpdatedReleases.AddRange ( updatedReleases );
+                allUpdatedReleases.AddRange(updatedReleases);
 
-                if ( updatedReleases.Count () != page.Data.Count () ) break;
+                if (updatedReleases.Count() != page.Data.Count()) break;
             }
 
 
-            if ( !allUpdatedReleases.Any () ) return;
+            if (!allUpdatedReleases.Any()) return;
 
-            var lastTimestamp = DateTimeOffset.Parse ( allUpdatedReleases.First ().FreshAt ).ToUnixTimeSeconds ();
+            var lastTimestamp = DateTimeOffset.Parse(allUpdatedReleases.First().FreshAt).ToUnixTimeSeconds();
 
-            var result = new List<ReleaseSaveModel> ();
-            var resultTorrents = new List<ReleaseTorrentSaveModel> ();
-            var resultVideos = new List<ReleaseSaveEpisodeModel> ();
-            await MapPageReleasesWithProgress ( httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, callback, allUpdatedReleases.Count () );
+            var result = new List<ReleaseSaveModel>();
+            var resultTorrents = new List<ReleaseTorrentSaveModel>();
+            var resultVideos = new List<ReleaseSaveEpisodeModel>();
+            await MapPageReleasesWithProgress(httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, callback, allUpdatedReleases.Count());
 
-            var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache ( metadata, folderToSaveCacheFiles, asCache: true );
+            var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache(metadata, folderToSaveCacheFiles, asCache: true);
 
-            var updatedIds = result.Select ( a => a.Id ).ToHashSet ();
+            var updatedIds = result.Select(a => a.Id).ToHashSet();
 
             var editedReleases = currentReleases
-                .Where ( a => !updatedIds.Contains ( a.Id ) )
-                .ToList ()
-                .Concat ( result )
-                .ToList ();
+                .Where(a => !updatedIds.Contains(a.Id))
+                .ToList()
+                .Concat(result)
+                .ToList();
             var updatedEpisodes = currentEpisodes
-                .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
-                .ToList ()
-                .Concat ( resultVideos )
-                .ToList ();
+                .Where(a => !updatedIds.Contains(a.ReleaseId))
+                .ToList()
+                .Concat(resultVideos)
+                .ToList();
             var updatedTorrents = currentTorrents
-                .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
-                .ToList ()
-                .Concat ( resultTorrents )
-                .ToList ();
+                .Where(a => !updatedIds.Contains(a.ReleaseId))
+                .ToList()
+                .Concat(resultTorrents)
+                .ToList();
 
-            await SaveLoadedItemsToFiles ( folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp, asCache: true );
+            await SaveLoadedItemsToFiles(folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp, asCache: true);
         }
 
-        static public async Task SynchronizeAllPosters ( HttpClient httpClient, string folderToSaveCacheFiles, Action<int, int> callback ) {
-            var metadata = await ReadMetadata ( folderToSaveCacheFiles );
-            if ( metadata == null ) return;
-            var (_, currentReleases, _) = await ReadCurrentCache ( metadata, folderToSaveCacheFiles, asCache: true );
+        static public async Task SaveFullReleases(HttpClient httpClient, string folderToSaveCacheFiles, int countOnPages, Action<int, int> callback)
+        {
+            var types = await ReadTypes(folderToSaveCacheFiles);
+            var metadata = await ReadMetadata(folderToSaveCacheFiles);
+            if (metadata == null) return;
 
-            var countReleases = currentReleases.Count ();
+            Console.WriteLine("Try to read current relases, torrents and episodes");
+
+            var totalPages = 300;
+
+            var allReleases = new List<ReleaseDataFullModel>();
+
+            for (var i = 1; i < 300; i++)
+            {
+                Console.WriteLine($"Try to get page {i}");
+                var page = await RequestMaker.GetPageIds(i, httpClient, countOnPages);
+                if (totalPages == 300)
+                {
+                    totalPages = page.Meta.Pagination.TotalPages;
+                    Console.WriteLine("Total pages: " + totalPages);
+                }
+
+                if (!page.Data.Any()) break;
+
+                var ids = page.Data.Select(a => a.Id).ToList();
+
+                var firstPart = ids.Take(25);
+                var secondPart = new List<int>();
+                if (firstPart.Count() == 25) secondPart = ids.Skip(25).ToList();
+
+                if (!firstPart.Any() && !secondPart.Any()) break;
+
+                if (firstPart.Any()) allReleases.AddRange((await RequestMaker.GetReleasesInnerCollections(httpClient, firstPart)).Data);
+                if (secondPart.Any()) allReleases.AddRange((await RequestMaker.GetReleasesInnerCollections(httpClient, secondPart)).Data);
+
+                if (i % 2 == 0) await Task.Delay(500);
+
+                callback(i / totalPages * 100, totalPages);
+            }
+
+            if (!allReleases.Any()) return;
+
+            var lastTimestamp = DateTimeOffset.Parse(allReleases.First().FreshAt).ToUnixTimeSeconds();
+
+            var result = new List<ReleaseSaveModel>();
+            var resultTorrents = new List<ReleaseTorrentSaveModel>();
+            var resultVideos = new List<ReleaseSaveEpisodeModel>();
+
+            foreach (var fullRelease in allReleases)
+            {
+                //release
+                result.Add(new ReleaseSaveModel
+                {
+                    Id = fullRelease.Id,
+                    Announce = fullRelease.Notification ?? "",
+                    Code = fullRelease.Alias,
+                    CountVideos = fullRelease.Episodes?.Count() ?? 0,
+                    CountTorrents = fullRelease.Torrents?.Count() ?? 0,
+                    Description = fullRelease.Description,
+                    Timestamp = ParseDateTimeOffset(fullRelease.FreshAt),
+                    OriginalName = fullRelease.Name.English,
+                    Title = fullRelease.Name.Main,
+                    Rating = fullRelease.AddedInUsersFavorites ?? 0,
+                    Year = fullRelease.Year.ToString(),
+                    Season = types.Seasons.FirstOrDefault(a => a.Value == fullRelease.Season.Value)?.Description ?? "Не указано",
+                    Status = fullRelease.IsInProduction ? "Сейчас в озвучке" : "Озвучка завершена",
+                    Series = fullRelease.EpisodesAreUnknown ? "?" : $"({fullRelease.EpisodesTotal ?? 0})",
+                    Poster = fullRelease.Poster.Src,
+                    Type = types.Types.FirstOrDefault(a => a.Value == fullRelease.Type.Value)?.Description ?? fullRelease.Type.Value,
+                    Genres = string.Join(", ", fullRelease.Genres.Select(a => types.Genres.FirstOrDefault(b => b.Id == a.Id)?.Name ?? "").Where(a => !string.IsNullOrEmpty(a))),
+                    IsOngoing = fullRelease.IsOngoing,
+                    AgeRating = types.AgeRatings.FirstOrDefault(a => a.Value == fullRelease.AgeRating.Value)?.Description ?? fullRelease.AgeRating.Value,
+                    Voices = fullRelease.Members != null ? string.Join(", ", fullRelease.Members.Where(a => a.Role.Value == "voicing").Select(a => a.Nickname)) : "",
+                    Team = fullRelease.Members != null ? string.Join(", ", fullRelease.Members.OrderByDescending(a => a.Role.Value).Select(a => a.Nickname)) : ""
+                });
+
+                // torrents
+                if (fullRelease.Torrents?.Any() == true)
+                {
+                    foreach (var torrent in fullRelease.Torrents)
+                    {
+                        resultTorrents.Add(
+                            new ReleaseTorrentSaveModel
+                            {
+                                Id = torrent.Id,
+                                Codec = torrent.Codec,
+                                Description = torrent.Description,
+                                Filename = torrent.Filename,
+                                Hash = torrent.Hash,
+                                Magnet = torrent.Magnet,
+                                Quality = torrent.Quality,
+                                Type = torrent.Type,
+                                Size = torrent.Size,
+                                ReleaseId = fullRelease.Id,
+                                Seeders = torrent.Seeders,
+                                Time = ParseDateTimeOffset(torrent.UpdatedAt)
+                            }
+                        );
+                    }
+                }
+
+                // map episodes
+                if (fullRelease.Episodes?.Any() == true)
+                {
+                    RemapEpisodes(fullRelease.Episodes);
+                    resultVideos.Add(new ReleaseSaveEpisodeModel { ReleaseId = fullRelease.Id, Items = fullRelease.Episodes });
+                }
+            }
+
+            await SaveLoadedItemsToFiles(folderToSaveCacheFiles, result, resultTorrents, resultVideos, lastTimestamp, asCache: true);
+        }
+
+        static public async Task SynchronizeAllPosters(HttpClient httpClient, string folderToSaveCacheFiles, Action<int, int> callback)
+        {
+            var metadata = await ReadMetadata(folderToSaveCacheFiles);
+            if (metadata == null) return;
+            var (_, currentReleases, _) = await ReadCurrentCache(metadata, folderToSaveCacheFiles, asCache: true);
+
+            var countReleases = currentReleases.Count();
             var countProcessed = 0;
-            foreach ( var currentRelease in currentReleases ) {
+            foreach (var currentRelease in currentReleases)
+            {
                 var poster = RequestMaker.ApiDomain + currentRelease.Poster;
 
-                Console.WriteLine ( "Try to download poster " + poster );
-                await RequestMaker.DownloadPoster ( httpClient, poster, Path.Combine ( folderToSaveCacheFiles, $"imagecache/{currentRelease.Id}.image" ) );
-                await Task.Delay ( 1000 );
-                Console.WriteLine ( "Poster " + poster + " downloaded" );
+                Console.WriteLine("Try to download poster " + poster);
+                await RequestMaker.DownloadPoster(httpClient, poster, Path.Combine(folderToSaveCacheFiles, $"imagecache/{currentRelease.Id}.image"));
+                await Task.Delay(1000);
+                Console.WriteLine("Poster " + poster + " downloaded");
 
                 countProcessed++;
-                var percent = ( (double) countProcessed / (double) countReleases ) * 100;
-                callback ( Convert.ToInt32 ( percent ), countProcessed );
+                var percent = ((double)countProcessed / (double)countReleases) * 100;
+                callback(Convert.ToInt32(percent), countProcessed);
             }
         }
 
-        static public async Task SaveReleases ( HttpClient httpClient, bool synchronizeFullReleases, string folderToSaveCacheFiles, bool isSaveBlocked ) {
-            Console.WriteLine ( "Start synchronized releases..." );
+        static public async Task SaveReleases(HttpClient httpClient, bool synchronizeFullReleases, string folderToSaveCacheFiles, bool isSaveBlocked)
+        {
+            Console.WriteLine("Start synchronized releases...");
 
-            if ( synchronizeFullReleases ) {
-                var types = await ReadTypes ( folderToSaveCacheFiles );
-                var metadata = await ReadMetadata ( folderToSaveCacheFiles );
-                if ( metadata == null ) return;
+            if (synchronizeFullReleases)
+            {
+                var types = await ReadTypes(folderToSaveCacheFiles);
+                var metadata = await ReadMetadata(folderToSaveCacheFiles);
+                if (metadata == null) return;
 
-                Console.WriteLine ( "Try to read relases, torrents and episodes" );
+                Console.WriteLine("Try to read relases, torrents and episodes");
 
-                var allUpdatedReleases = new List<ReleaseDataModel> ();
+                var allUpdatedReleases = new List<ReleaseDataModel>();
 
-                for ( var i = 1; i < 60; i++ ) {
-                    Console.WriteLine ( $"Try to get page {i}" );
-                    var page = await RequestMaker.GetPage ( i, httpClient );
+                for (var i = 1; i < 60; i++)
+                {
+                    Console.WriteLine($"Try to get page {i}");
+                    var page = await RequestMaker.GetPage(i, httpClient);
                     var totalPages = page.Meta.Pagination.TotalPages;
-                    if ( i == 1 ) Console.WriteLine ( "Total pages: " + totalPages );
+                    if (i == 1) Console.WriteLine("Total pages: " + totalPages);
 
-                    allUpdatedReleases.AddRange ( page.Data.ToList () );
-                    await Task.Delay ( 2000 );
-                    if ( i == totalPages ) break;
+                    allUpdatedReleases.AddRange(page.Data.ToList());
+                    await Task.Delay(2000);
+                    if (i == totalPages) break;
                 }
-                if ( !allUpdatedReleases.Any () ) return;
+                if (!allUpdatedReleases.Any()) return;
 
-                Console.WriteLine ( $"Releases {allUpdatedReleases.Count} will be updated!" );
+                Console.WriteLine($"Releases {allUpdatedReleases.Count} will be updated!");
 
-                var lastTimestamp = DateTimeOffset.Parse ( allUpdatedReleases.First ().FreshAt ).ToUnixTimeSeconds ();
+                var lastTimestamp = DateTimeOffset.Parse(allUpdatedReleases.First().FreshAt).ToUnixTimeSeconds();
 
-                var ignoredIds = await ReadIgnoreIds ( folderToSaveCacheFiles );
+                var ignoredIds = await ReadIgnoreIds(folderToSaveCacheFiles);
 
-                var result = new List<ReleaseSaveModel> ();
-                var resultTorrents = new List<ReleaseTorrentSaveModel> ();
-                var resultVideos = new List<ReleaseSaveEpisodeModel> ();
-                await MapPageReleases ( httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, ignoredIds );
+                var result = new List<ReleaseSaveModel>();
+                var resultTorrents = new List<ReleaseTorrentSaveModel>();
+                var resultVideos = new List<ReleaseSaveEpisodeModel>();
+                await MapPageReleases(httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, ignoredIds);
 
-                var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache ( metadata, folderToSaveCacheFiles );
+                var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache(metadata, folderToSaveCacheFiles);
 
-                var updatedIds = result.Select ( a => a.Id ).ToHashSet ();
+                var updatedIds = result.Select(a => a.Id).ToHashSet();
 
                 var editedReleases = currentReleases
-                    .Where ( a => !updatedIds.Contains ( a.Id ) )
-                    .ToList ()
-                    .Concat ( result )
-                    .ToList ();
+                    .Where(a => !updatedIds.Contains(a.Id))
+                    .ToList()
+                    .Concat(result)
+                    .ToList();
                 var updatedEpisodes = currentEpisodes
-                    .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
-                    .ToList ()
-                    .Concat ( resultVideos )
-                    .ToList ();
+                    .Where(a => !updatedIds.Contains(a.ReleaseId))
+                    .ToList()
+                    .Concat(resultVideos)
+                    .ToList();
                 var updatedTorrents = currentTorrents
-                    .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
-                    .ToList ()
-                    .Concat ( resultTorrents )
-                    .ToList ();
+                    .Where(a => !updatedIds.Contains(a.ReleaseId))
+                    .ToList()
+                    .Concat(resultTorrents)
+                    .ToList();
 
-                await SaveLoadedItemsToFiles ( folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp );
-            } else {
-                var types = await ReadTypes ( folderToSaveCacheFiles );
-                var metadata = await ReadMetadata ( folderToSaveCacheFiles );
-                if ( metadata == null ) return;
+                await SaveLoadedItemsToFiles(folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp);
+            }
+            else
+            {
+                var types = await ReadTypes(folderToSaveCacheFiles);
+                var metadata = await ReadMetadata(folderToSaveCacheFiles);
+                if (metadata == null) return;
 
-                Console.WriteLine ( "Try to read current relases, torrents and episodes" );
+                Console.WriteLine("Try to read current relases, torrents and episodes");
 
-                var allUpdatedReleases = new List<ReleaseDataModel> ();
+                var allUpdatedReleases = new List<ReleaseDataModel>();
 
-                for ( var i = 1; i < 10; i++ ) {
-                    Console.WriteLine ( $"Try to get page {i}" );
-                    var page = await RequestMaker.GetPage ( i, httpClient );
+                for (var i = 1; i < 10; i++)
+                {
+                    Console.WriteLine($"Try to get page {i}");
+                    var page = await RequestMaker.GetPage(i, httpClient);
                     var totalPages = page.Meta.Pagination.TotalPages;
-                    Console.WriteLine ( "Total pages: " + totalPages );
+                    Console.WriteLine("Total pages: " + totalPages);
 
                     var updatedReleases = page.Data
-                        .Where ( a => DateTimeOffset.Parse ( a.FreshAt ).ToUnixTimeSeconds () > metadata.LastReleaseTimeStamp )
-                        .ToList ();
-                    if ( !updatedReleases.Any () ) {
-                        Console.WriteLine ( $"No changes in releases on page {i}!" );
+                        .Where(a => DateTimeOffset.Parse(a.FreshAt).ToUnixTimeSeconds() > metadata.LastReleaseTimeStamp)
+                        .ToList();
+                    if (!updatedReleases.Any())
+                    {
+                        Console.WriteLine($"No changes in releases on page {i}!");
                         continue;
                     }
 
-                    allUpdatedReleases.AddRange ( updatedReleases );
+                    allUpdatedReleases.AddRange(updatedReleases);
 
-                    if ( updatedReleases.Count () != page.Data.Count () ) break;
+                    if (updatedReleases.Count() != page.Data.Count()) break;
                 }
 
 
-                if ( !allUpdatedReleases.Any () ) return;
+                if (!allUpdatedReleases.Any()) return;
 
-                var lastTimestamp = DateTimeOffset.Parse ( allUpdatedReleases.First ().FreshAt ).ToUnixTimeSeconds ();
+                var lastTimestamp = DateTimeOffset.Parse(allUpdatedReleases.First().FreshAt).ToUnixTimeSeconds();
 
-                var ignoredIds = await ReadIgnoreIds ( folderToSaveCacheFiles );
+                var ignoredIds = await ReadIgnoreIds(folderToSaveCacheFiles);
 
-                var result = new List<ReleaseSaveModel> ();
-                var resultTorrents = new List<ReleaseTorrentSaveModel> ();
-                var resultVideos = new List<ReleaseSaveEpisodeModel> ();
-                await MapPageReleases ( httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, ignoredIds );
+                var result = new List<ReleaseSaveModel>();
+                var resultTorrents = new List<ReleaseTorrentSaveModel>();
+                var resultVideos = new List<ReleaseSaveEpisodeModel>();
+                await MapPageReleases(httpClient, allUpdatedReleases, result, resultTorrents, types, resultVideos, ignoredIds);
 
-                var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache ( metadata, folderToSaveCacheFiles );
+                var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache(metadata, folderToSaveCacheFiles);
 
-                var updatedIds = result.Select ( a => a.Id ).ToHashSet ();
+                var updatedIds = result.Select(a => a.Id).ToHashSet();
 
                 var editedReleases = currentReleases
-                    .Where ( a => !updatedIds.Contains ( a.Id ) )
-                    .ToList ()
-                    .Concat ( result )
-                    .ToList ();
+                    .Where(a => !updatedIds.Contains(a.Id))
+                    .ToList()
+                    .Concat(result)
+                    .ToList();
                 var updatedEpisodes = currentEpisodes
-                    .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
-                    .ToList ()
-                    .Concat ( resultVideos )
-                    .ToList ();
+                    .Where(a => !updatedIds.Contains(a.ReleaseId))
+                    .ToList()
+                    .Concat(resultVideos)
+                    .ToList();
                 var updatedTorrents = currentTorrents
-                    .Where ( a => !updatedIds.Contains ( a.ReleaseId ) )
-                    .ToList ()
-                    .Concat ( resultTorrents )
-                    .ToList ();
+                    .Where(a => !updatedIds.Contains(a.ReleaseId))
+                    .ToList()
+                    .Concat(resultTorrents)
+                    .ToList();
 
-                await SaveLoadedItemsToFiles ( folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp );
+                await SaveLoadedItemsToFiles(folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp);
 
                 return;
             }
 
         }
-        static async Task<MetadataModel?> ReadMetadata ( string folderToSaveCacheFiles ) {
-            var metadataPath = Path.Combine ( folderToSaveCacheFiles, "metadata" );
+        static async Task<MetadataModel?> ReadMetadata(string folderToSaveCacheFiles)
+        {
+            var metadataPath = Path.Combine(folderToSaveCacheFiles, "metadata");
 
-            if ( !File.Exists ( metadataPath ) ) {
-                Console.WriteLine ( "Sorry but you need to synchronize all releases first. Use `-releases -fullreleases` options!" );
+            if (!File.Exists(metadataPath))
+            {
+                Console.WriteLine("Sorry but you need to synchronize all releases first. Use `-releases -fullreleases` options!");
                 return null;
             }
-            var metadata = DeserializeFromJson<MetadataModel> ( await File.ReadAllTextAsync ( metadataPath ) );
-            if ( metadata == null ) {
-                Console.WriteLine ( "Can't read metadata file, please check if it file is correct! May be need to make recreate it with `-releases -fullreleases` options!" );
+            var metadata = DeserializeFromJson<MetadataModel>(await File.ReadAllTextAsync(metadataPath));
+            if (metadata == null)
+            {
+                Console.WriteLine("Can't read metadata file, please check if it file is correct! May be need to make recreate it with `-releases -fullreleases` options!");
                 return null;
             }
 
             return metadata;
         }
 
-        static async Task<TypesResultModel> ReadTypes ( string folderToSaveCacheFiles ) {
-            var pathToTypes = Path.Combine ( folderToSaveCacheFiles, "types.json" );
-            if ( !File.Exists ( pathToTypes ) ) {
-                Console.WriteLine ( $"File types.json not found by path {Path.GetFullPath ( pathToTypes )}. You need synchronize types, please add -types or -all parameters to command!" );
-                Environment.Exit ( 1 );
+        static async Task<TypesResultModel> ReadTypes(string folderToSaveCacheFiles)
+        {
+            var pathToTypes = Path.Combine(folderToSaveCacheFiles, "types.json");
+            if (!File.Exists(pathToTypes))
+            {
+                Console.WriteLine($"File types.json not found by path {Path.GetFullPath(pathToTypes)}. You need synchronize types, please add -types or -all parameters to command!");
+                Environment.Exit(1);
             }
-            var types = DeserializeFromJson<TypesResultModel> ( await File.ReadAllTextAsync ( pathToTypes ) );
-            if ( types == null ) {
-                Console.WriteLine ( $"Content of types.json is corrupt. You need synchronize types, please add -types or -all parameters to command!" );
-                Environment.Exit ( 1 );
+            var types = DeserializeFromJson<TypesResultModel>(await File.ReadAllTextAsync(pathToTypes));
+            if (types == null)
+            {
+                Console.WriteLine($"Content of types.json is corrupt. You need synchronize types, please add -types or -all parameters to command!");
+                Environment.Exit(1);
             }
 
             return types;
         }
 
-        static async Task<IEnumerable<int>> ReadIgnoreIds ( string folderToSaveCacheFiles ) {
-            var pathToIgnored = Path.Combine ( folderToSaveCacheFiles, "ignored.json" );
-            var ignoredIds = new List<int> ();
-            if ( File.Exists ( pathToIgnored ) ) {
-                ignoredIds = ( DeserializeFromJson<IEnumerable<int>> ( await File.ReadAllTextAsync ( pathToIgnored ) ) )?.ToList () ?? Enumerable.Empty<int> ().ToList ();
+        static async Task<IEnumerable<int>> ReadIgnoreIds(string folderToSaveCacheFiles)
+        {
+            var pathToIgnored = Path.Combine(folderToSaveCacheFiles, "ignored.json");
+            var ignoredIds = new List<int>();
+            if (File.Exists(pathToIgnored))
+            {
+                ignoredIds = (DeserializeFromJson<IEnumerable<int>>(await File.ReadAllTextAsync(pathToIgnored)))?.ToList() ?? Enumerable.Empty<int>().ToList();
             }
 
             return ignoredIds;
         }
 
-        static async Task MapPageReleases (
+        static async Task MapPageReleases(
             HttpClient httpClient,
             IEnumerable<ReleaseDataModel> releases,
             List<ReleaseSaveModel> result,
             List<ReleaseTorrentSaveModel> torrents,
             TypesResultModel types,
             List<ReleaseSaveEpisodeModel> episodes,
-            IEnumerable<int> ignoredIds ) {
+            IEnumerable<int> ignoredIds)
+        {
 
             var actualReleases = releases
-                .Where ( a => !ignoredIds.Contains ( a.Id ) )
-                .ToList ();
+                .Where(a => !ignoredIds.Contains(a.Id))
+                .ToList();
 
-            var relatedStuff = await GetRelatedStuffForReleases ( httpClient, actualReleases.Select ( a => a.Id ).ToList () );
-            torrents.AddRange (
-                relatedStuff.SelectMany (
-                    a => {
+            var relatedStuff = await GetRelatedStuffForReleases(httpClient, actualReleases.Select(a => a.Id).ToList());
+            torrents.AddRange(
+                relatedStuff.SelectMany(
+                    a =>
+                    {
                         return a.torrents
-                            .Select (
-                                torrent => new ReleaseTorrentSaveModel {
+                            .Select(
+                                torrent => new ReleaseTorrentSaveModel
+                                {
                                     Id = torrent.Id,
                                     Codec = torrent.Codec,
                                     Description = torrent.Description,
@@ -412,23 +561,23 @@ namespace LocalCacheChecker {
                                     Size = torrent.Size,
                                     ReleaseId = a.releaseId,
                                     Seeders = torrent.Seeders,
-                                    Time = ParseDateTimeOffset ( torrent.UpdatedAt )
+                                    Time = ParseDateTimeOffset(torrent.UpdatedAt)
                                 }
                             );
                     }
                 )
             );
 
-            episodes.AddRange (
+            episodes.AddRange(
                 relatedStuff
-                    .Where ( a => a.episodes.Any () ) // if no episodes no need to save it
-                    .Select ( a => new ReleaseSaveEpisodeModel { ReleaseId = a.releaseId, Items = a.episodes } )
-                    .ToList ()
+                    .Where(a => a.episodes.Any()) // if no episodes no need to save it
+                    .Select(a => new ReleaseSaveEpisodeModel { ReleaseId = a.releaseId, Items = a.episodes })
+                    .ToList()
             );
-            result.AddRange ( MapForSave ( actualReleases, relatedStuff, types ) );
+            result.AddRange(MapForSave(actualReleases, relatedStuff, types));
         }
 
-        static async Task MapPageReleasesWithProgress (
+        static async Task MapPageReleasesWithProgress(
           HttpClient httpClient,
           IEnumerable<ReleaseDataModel> releases,
           List<ReleaseSaveModel> result,
@@ -437,30 +586,37 @@ namespace LocalCacheChecker {
           List<ReleaseSaveEpisodeModel> episodes,
           Action<int, int> callback,
           int countReleases
-          ) {
+          )
+        {
             var releaseProcessed = 0;
-            foreach ( var release in releases ) {
+            foreach (var release in releases)
+            {
                 ReleaseOnlyCollectionsModel collections;
-                try {
-                    collections = await RequestMaker.GetReleaseInnerCollections ( httpClient, release.Id );
-                } catch ( Exception ex ) {
-                    Console.WriteLine ( $"Error while try get release info for {release.Id} {ex.Message}" );
+                try
+                {
+                    collections = await RequestMaker.GetReleaseInnerCollections(httpClient, release.Id);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error while try get release info for {release.Id} {ex.Message}");
                     continue;
                 }
 
-                RemapEpisodes ( collections );
+                RemapEpisodes(collections.Episodes);
 
                 releaseProcessed++;
-                callback ( Convert.ToInt32 ( ( ( (float) releaseProcessed / (float) countReleases ) * 100 ) ), releaseProcessed );
+                callback(Convert.ToInt32((((float)releaseProcessed / (float)countReleases) * 100)), releaseProcessed);
             }
 
-            var relatedStuff = await GetRelatedStuffForReleases ( httpClient, releases.Select ( a => a.Id ).ToList () );
-            torrents.AddRange (
-                relatedStuff.SelectMany (
-                    a => {
+            var relatedStuff = await GetRelatedStuffForReleases(httpClient, releases.Select(a => a.Id).ToList());
+            torrents.AddRange(
+                relatedStuff.SelectMany(
+                    a =>
+                    {
                         return a.torrents
-                            .Select (
-                                torrent => new ReleaseTorrentSaveModel {
+                            .Select(
+                                torrent => new ReleaseTorrentSaveModel
+                                {
                                     Id = torrent.Id,
                                     Codec = torrent.Codec,
                                     Description = torrent.Description,
@@ -472,59 +628,66 @@ namespace LocalCacheChecker {
                                     Size = torrent.Size,
                                     ReleaseId = a.releaseId,
                                     Seeders = torrent.Seeders,
-                                    Time = ParseDateTimeOffset ( torrent.UpdatedAt )
+                                    Time = ParseDateTimeOffset(torrent.UpdatedAt)
                                 }
                             );
                     }
                 )
             );
 
-            episodes.AddRange (
+            episodes.AddRange(
                 relatedStuff
-                    .Where ( a => a.episodes.Any () ) // if no episodes no need to save it
-                    .Select ( a => new ReleaseSaveEpisodeModel { ReleaseId = a.releaseId, Items = a.episodes } )
-                    .ToList ()
+                    .Where(a => a.episodes.Any()) // if no episodes no need to save it
+                    .Select(a => new ReleaseSaveEpisodeModel { ReleaseId = a.releaseId, Items = a.episodes })
+                    .ToList()
             );
-            result.AddRange ( MapForSave ( releases, relatedStuff, types ) );
+            result.AddRange(MapForSave(releases, relatedStuff, types));
         }
 
-        static long ParseDateTimeOffset ( string value ) {
-            if ( string.IsNullOrEmpty ( value ) ) return 0;
+        static long ParseDateTimeOffset(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return 0;
 
-            try {
-                return DateTimeOffset.Parse ( value ).ToUnixTimeSeconds ();
-            } catch {
+            try
+            {
+                return DateTimeOffset.Parse(value).ToUnixTimeSeconds();
+            }
+            catch
+            {
                 return 0;
             }
         }
 
-        static IEnumerable<ReleaseSaveModel> MapForSave ( IEnumerable<ReleaseDataModel> items, IEnumerable<(int releaseId, IEnumerable<ReleaseTorrentModel> torrents, IEnumerable<ReleaseMemberModel> members, IEnumerable<ReleaseEpisodeModel> episodes)> relatedStuff, TypesResultModel types ) {
-            var result = new List<ReleaseSaveModel> ();
-            foreach ( var item in items ) {
-                var (releaseId, torrents, members, episodes) = relatedStuff.FirstOrDefault ( a => a.releaseId == item.Id );
-                result.Add (
-                    new ReleaseSaveModel {
+        static IEnumerable<ReleaseSaveModel> MapForSave(IEnumerable<ReleaseDataModel> items, IEnumerable<(int releaseId, IEnumerable<ReleaseTorrentModel> torrents, IEnumerable<ReleaseMemberModel> members, IEnumerable<ReleaseEpisodeModel> episodes)> relatedStuff, TypesResultModel types)
+        {
+            var result = new List<ReleaseSaveModel>();
+            foreach (var item in items)
+            {
+                var (releaseId, torrents, members, episodes) = relatedStuff.FirstOrDefault(a => a.releaseId == item.Id);
+                result.Add(
+                    new ReleaseSaveModel
+                    {
                         Id = item.Id,
                         Announce = item.Notification ?? "",
                         Code = item.Alias,
-                        CountVideos = episodes?.Count () ?? 0,
-                        CountTorrents = torrents?.Count () ?? 0,
+                        CountVideos = episodes?.Count() ?? 0,
+                        CountTorrents = torrents?.Count() ?? 0,
                         Description = item.Description,
-                        Timestamp = ParseDateTimeOffset ( item.FreshAt ),
+                        Timestamp = ParseDateTimeOffset(item.FreshAt),
                         OriginalName = item.Name.English,
                         Title = item.Name.Main,
                         Rating = item.AddedInUsersFavorites ?? 0,
-                        Year = item.Year.ToString (),
-                        Season = types.Seasons.FirstOrDefault ( a => a.Value == item.Season.Value )?.Description ?? "Не указано",
+                        Year = item.Year.ToString(),
+                        Season = types.Seasons.FirstOrDefault(a => a.Value == item.Season.Value)?.Description ?? "Не указано",
                         Status = item.IsInProduction ? "Сейчас в озвучке" : "Озвучка завершена",
                         Series = item.EpisodesAreUnknown ? "?" : $"({item.EpisodesTotal ?? 0})",
                         Poster = item.Poster.Src,
-                        Type = types.Types.FirstOrDefault ( a => a.Value == item.Type.Value )?.Description ?? item.Type.Value,
-                        Genres = string.Join ( ", ", item.Genres.Select ( a => types.Genres.FirstOrDefault ( b => b.Id == a.Id )?.Name ?? "" ).Where ( a => !string.IsNullOrEmpty ( a ) ) ),
+                        Type = types.Types.FirstOrDefault(a => a.Value == item.Type.Value)?.Description ?? item.Type.Value,
+                        Genres = string.Join(", ", item.Genres.Select(a => types.Genres.FirstOrDefault(b => b.Id == a.Id)?.Name ?? "").Where(a => !string.IsNullOrEmpty(a))),
                         IsOngoing = item.IsOngoing,
-                        AgeRating = types.AgeRatings.FirstOrDefault ( a => a.Value == item.AgeRating.Value )?.Description ?? item.AgeRating.Value,
-                        Voices = members != null ? string.Join ( ", ", members.Where ( a => a.Role.Value == "voicing" ).Select ( a => a.Nickname ) ) : "",
-                        Team = members != null ? string.Join ( ", ", members.OrderByDescending ( a => a.Role.Value ).Select ( a => a.Nickname ) ) : ""
+                        AgeRating = types.AgeRatings.FirstOrDefault(a => a.Value == item.AgeRating.Value)?.Description ?? item.AgeRating.Value,
+                        Voices = members != null ? string.Join(", ", members.Where(a => a.Role.Value == "voicing").Select(a => a.Nickname)) : "",
+                        Team = members != null ? string.Join(", ", members.OrderByDescending(a => a.Role.Value).Select(a => a.Nickname)) : ""
                     }
                 ); ;
             }
@@ -533,90 +696,104 @@ namespace LocalCacheChecker {
         }
 
         //fix domain and language issues
-        static string RemakeDomain ( string url ) => url.Replace ( "cache.libria.fun", "cache-rfn.libria.fun" ).Replace ( "countryIso=US", "countryIso=RU" );
+        static string RemakeDomain(string url) => url.Replace("cache.libria.fun", "cache-rfn.libria.fun").Replace("countryIso=US", "countryIso=RU");
 
-        static void RemapEpisodes ( ReleaseOnlyCollectionsModel collections ) {
-            foreach ( var collection in collections.Episodes ) {
-                if ( collection.Preview?.Thumbnail?.Any () == true ) {
+        static void RemapEpisodes(IEnumerable<ReleaseEpisodeModel> episodes)
+        {
+            foreach (var collection in episodes)
+            {
+                if (collection.Preview?.Thumbnail?.Any() == true)
+                {
                     collection.Preview = collection.Preview with { Thumbnail = "" };
                 }
 
-                if ( !string.IsNullOrEmpty ( collection.Hls720 ) ) collection.Hls720 = RemakeDomain ( collection.Hls720 );
-                if ( !string.IsNullOrEmpty ( collection.Hls1080 ) ) collection.Hls1080 = RemakeDomain ( collection.Hls1080 );
-                if ( !string.IsNullOrEmpty ( collection.Hls480 ) ) collection.Hls480 = RemakeDomain ( collection.Hls480 );
+                if (!string.IsNullOrEmpty(collection.Hls720)) collection.Hls720 = RemakeDomain(collection.Hls720);
+                if (!string.IsNullOrEmpty(collection.Hls1080)) collection.Hls1080 = RemakeDomain(collection.Hls1080);
+                if (!string.IsNullOrEmpty(collection.Hls480)) collection.Hls480 = RemakeDomain(collection.Hls480);
             }
 
             //reorder episodes from zero
-            var orderedEpisodes = collections.Episodes.OrderBy ( a => a.SortOrder );
+            var orderedEpisodes = episodes.OrderBy(a => a.SortOrder);
             var iterator = 0;
-            foreach ( var orderedEpisode in orderedEpisodes ) {
+            foreach (var orderedEpisode in orderedEpisodes)
+            {
                 orderedEpisode.SortOrder = iterator;
                 iterator++;
             }
         }
 
-        static async Task<IEnumerable<(int releaseId, IEnumerable<ReleaseTorrentModel> torrents, IEnumerable<ReleaseMemberModel> members, IEnumerable<ReleaseEpisodeModel> episodes)>> GetRelatedStuffForReleases ( HttpClient httpClient, IEnumerable<int> ids ) {
-            var result = new List<(int, IEnumerable<ReleaseTorrentModel>, IEnumerable<ReleaseMemberModel>, IEnumerable<ReleaseEpisodeModel>)> ();
-            foreach ( int releaseId in ids ) {
-                Console.WriteLine ( "Load for release " + releaseId );
+        static async Task<IEnumerable<(int releaseId, IEnumerable<ReleaseTorrentModel> torrents, IEnumerable<ReleaseMemberModel> members, IEnumerable<ReleaseEpisodeModel> episodes)>> GetRelatedStuffForReleases(HttpClient httpClient, IEnumerable<int> ids)
+        {
+            var result = new List<(int, IEnumerable<ReleaseTorrentModel>, IEnumerable<ReleaseMemberModel>, IEnumerable<ReleaseEpisodeModel>)>();
+            foreach (int releaseId in ids)
+            {
+                Console.WriteLine("Load for release " + releaseId);
 
                 ReleaseOnlyCollectionsModel collections;
-                try {
-                    collections = await RequestMaker.GetReleaseInnerCollections ( httpClient, releaseId );
-                } catch ( Exception ex ) {
-                    Console.WriteLine ( $"Error while try get release info for {releaseId} {ex.Message}" );
+                try
+                {
+                    collections = await RequestMaker.GetReleaseInnerCollections(httpClient, releaseId);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error while try get release info for {releaseId} {ex.Message}");
                     continue;
                 }
 
-                foreach ( var collection in collections.Episodes ) {
-                    if ( collection.Preview?.Thumbnail?.Any () == true ) {
+                foreach (var collection in collections.Episodes)
+                {
+                    if (collection.Preview?.Thumbnail?.Any() == true)
+                    {
                         collection.Preview = collection.Preview with { Thumbnail = "" };
                     }
 
-                    if ( !string.IsNullOrEmpty ( collection.Hls720 ) ) collection.Hls720 = RemakeDomain ( collection.Hls720 );
-                    if ( !string.IsNullOrEmpty ( collection.Hls1080 ) ) collection.Hls1080 = RemakeDomain ( collection.Hls1080 );
-                    if ( !string.IsNullOrEmpty ( collection.Hls480 ) ) collection.Hls480 = RemakeDomain ( collection.Hls480 );
+                    if (!string.IsNullOrEmpty(collection.Hls720)) collection.Hls720 = RemakeDomain(collection.Hls720);
+                    if (!string.IsNullOrEmpty(collection.Hls1080)) collection.Hls1080 = RemakeDomain(collection.Hls1080);
+                    if (!string.IsNullOrEmpty(collection.Hls480)) collection.Hls480 = RemakeDomain(collection.Hls480);
                 }
 
                 //reorder episodes from zero
-                var orderedEpisodes = collections.Episodes.OrderBy ( a => a.SortOrder );
+                var orderedEpisodes = collections.Episodes.OrderBy(a => a.SortOrder);
                 var iterator = 0;
-                foreach ( var orderedEpisode in orderedEpisodes ) {
+                foreach (var orderedEpisode in orderedEpisodes)
+                {
                     orderedEpisode.SortOrder = iterator;
                     iterator++;
                 }
 
-                result.Add ( (releaseId, collections.Torrents, collections.Members, collections.Episodes) );
-                await Task.Delay ( 2000 ); // make secound delay for avoid `too much requests` issue
+                result.Add((releaseId, collections.Torrents, collections.Members, collections.Episodes));
+                await Task.Delay(2000); // make secound delay for avoid `too much requests` issue
             }
 
             return result;
         }
 
-        private static async Task SaveLoadedItemsToFiles (
+        private static async Task SaveLoadedItemsToFiles(
             string folderToSaveCacheFiles,
             List<ReleaseSaveModel> result,
             List<ReleaseTorrentSaveModel> resultTorrents,
             List<ReleaseSaveEpisodeModel> resultVideos,
             long lastTimestamp,
-            bool asCache = false ) {
+            bool asCache = false)
+        {
 
             var extension = asCache ? ".cache" : ".json";
 
-            var countReleaseFiles = await SaveReleasesAsFewFiles ( folderToSaveCacheFiles, result, extension );
+            var countReleaseFiles = await SaveReleasesAsFewFiles(folderToSaveCacheFiles, result, extension);
 
-            var torrentPath = Path.Combine ( folderToSaveCacheFiles, $"torrents{extension}" );
-            Console.WriteLine ( $"Saving torrents to file {Path.GetFullPath ( torrentPath )} items" );
-            await File.WriteAllTextAsync ( torrentPath, SerializeToJson ( resultTorrents ) );
+            var torrentPath = Path.Combine(folderToSaveCacheFiles, $"torrents{extension}");
+            Console.WriteLine($"Saving torrents to file {Path.GetFullPath(torrentPath)} items");
+            await File.WriteAllTextAsync(torrentPath, SerializeToJson(resultTorrents));
 
-            var countEpisodeFiles = await SaveEpisodesAsFewFiles ( folderToSaveCacheFiles, resultVideos, extension );
+            var countEpisodeFiles = await SaveEpisodesAsFewFiles(folderToSaveCacheFiles, resultVideos, extension);
 
-            var metadataPath = Path.Combine ( folderToSaveCacheFiles, "metadata" );
-            Console.WriteLine ( $"Saving metadata to file {Path.GetFullPath ( metadataPath )} items" );
-            await File.WriteAllTextAsync (
+            var metadataPath = Path.Combine(folderToSaveCacheFiles, "metadata");
+            Console.WriteLine($"Saving metadata to file {Path.GetFullPath(metadataPath)} items");
+            await File.WriteAllTextAsync(
                 metadataPath,
-                SerializeToJson (
-                    new MetadataModel {
+                SerializeToJson(
+                    new MetadataModel
+                    {
                         LastReleaseTimeStamp = lastTimestamp,
                         CountEpisodes = countEpisodeFiles,
                         CountReleases = countReleaseFiles
