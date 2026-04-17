@@ -262,7 +262,7 @@ namespace LocalCacheChecker
             var resultTorrents = new List<ReleaseTorrentSaveModel>();
             var resultVideos = new List<ReleaseSaveEpisodeModel>();
 
-            foreach (var fullRelease in allReleases)
+            foreach (var fullRelease in allReleases.OrderByDescending(a => a.FreshAt))
             {
                 //release
                 result.Add(new ReleaseSaveModel
