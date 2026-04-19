@@ -141,7 +141,7 @@ namespace AnilibriaAPIClient
 
         static public async Task<ReleaseDataFullCollectionModel> GetReleasesInnerCollections(HttpClient httpClient, IEnumerable<int> releasesId)
         {
-            return await PerformRequest<ReleaseDataFullCollectionModel>(httpClient, $"{ApiDomain}/api/v1/anime/releases/list/?ids={string.Join(',', releasesId)}", "releases with full data");
+            return await PerformRequest<ReleaseDataFullCollectionModel>(httpClient, $"{ApiDomain}/api/v1/anime/releases/list/?ids={string.Join(',', releasesId)}&page=1&limit=50", "releases with full data");
         }
 
         private static async Task<T> PerformRequest<T>(HttpClient httpClient, string url, string requestName)

@@ -240,14 +240,7 @@ namespace LocalCacheChecker
 
                 var ids = page.Data.Select(a => a.Id).ToList();
 
-                var firstPart = ids.Take(25);
-                var secondPart = new List<int>();
-                if (firstPart.Count() == 25) secondPart = ids.Skip(25).ToList();
-
-                if (!firstPart.Any() && !secondPart.Any()) break;
-
-                if (firstPart.Any()) allReleases.AddRange((await RequestMaker.GetReleasesInnerCollections(httpClient, firstPart)).Data);
-                if (secondPart.Any()) allReleases.AddRange((await RequestMaker.GetReleasesInnerCollections(httpClient, secondPart)).Data);
+                allReleases.AddRange((await RequestMaker.GetReleasesInnerCollections(httpClient, ids)).Data);
 
                 if (i % 2 == 0) await Task.Delay(500);
 
