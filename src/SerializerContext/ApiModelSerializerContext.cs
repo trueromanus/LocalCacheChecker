@@ -47,6 +47,7 @@ namespace LocalCacheChecker.SerializerContext
     [JsonSerializable(typeof(IEnumerable<StringValueItem>))]
     [JsonSerializable(typeof(Dictionary<string, int>))]
     [JsonSerializable(typeof(List<int>))]
+    [JsonSerializable(typeof(ExtraSaveModel))]
     [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, WriteIndented = false)]
     internal partial class ApiModelSerializerContext : JsonSerializerContext
     {
@@ -91,6 +92,7 @@ namespace LocalCacheChecker.SerializerContext
     [JsonSerializable(typeof(IEnumerable<IntegerValueItem>))]
     [JsonSerializable(typeof(IEnumerable<StringValueItem>))]
     [JsonSerializable(typeof(Dictionary<string, int>))]
+    [JsonSerializable(typeof(ExtraSaveModel))]
     [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower)]
     internal partial class ReadApiModelSerializerContext : JsonSerializerContext
     {

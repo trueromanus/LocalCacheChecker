@@ -316,6 +316,25 @@ namespace LocalCacheChecker
                 }
             }
 
+            // uncomment to save extra files
+            /*var (currentEpisodes, currentReleases, currentTorrents) = await ReadCurrentCache(metadata, folderToSaveCacheFiles, asCache: true);
+
+            var exceptRelases = currentReleases
+                .Where(a => a.CountVideos > 0 && a.CountTorrents > 0)
+                .Select(a => a.Id)
+                .Except(result.Select(a => a.Id))
+                .ToHashSet();
+            var oldReleases = currentReleases.Where(a => exceptRelases.Contains(a.Id)).ToList();
+            var oldReleasesIds = oldReleases
+                .Select(a => a.Id)
+                .ToList();
+            await SaveLoadedItemsToExtraFiles(
+                folderToSaveCacheFiles,
+                oldReleases,
+                currentTorrents.Where(a => oldReleasesIds.Contains(a.ReleaseId)).ToList(),
+                currentEpisodes.Where(a => oldReleasesIds.Contains(a.ReleaseId)).ToList()
+            );*/
+
             await SaveLoadedItemsToFiles(folderToSaveCacheFiles, result, resultTorrents, resultVideos, lastTimestamp, asCache: true);
         }
 
@@ -794,6 +813,25 @@ namespace LocalCacheChecker
                 )
             );
         }
+
+        /*private static async Task SaveLoadedItemsToExtraFiles(
+            string folderToSaveCacheFiles,
+            List<ReleaseSaveModel> result,
+            List<ReleaseTorrentSaveModel> resultTorrents,
+            List<ReleaseSaveEpisodeModel> resultVideos)
+        {
+            var model = new ExtraSaveModel
+            {
+                Releases = result,
+                Torrents = resultTorrents,
+                Videos = resultVideos
+            };
+            var extraPath = Path.Combine(folderToSaveCacheFiles, "extrareleases.cache");
+            await File.WriteAllTextAsync(
+                extraPath,
+                SerializeToJson(model)
+            );
+        }*/
 
     }
 
