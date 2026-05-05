@@ -160,6 +160,6 @@ jobs:
       - macos64
     steps:
       - name: Merge Artifacts
-        uses: actions/upload-artifact/merge@v4
+        uses: actions/upload-artifact/merge@v7
         with:
           name: alldistributions        
