@@ -9,9 +9,9 @@ jobs:
     runs-on: macos-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Install .NET Core
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
 
@@ -32,22 +32,22 @@ jobs:
         cp LocalCacheCheckerLibrary/bin/Release/net10.0/osx-x64/publish/LocalCacheCheckerLibrary.dylib lcc64.dylib
         cp LocalCacheCheckerLibrary/bin/Release/net10.0/osx-arm64/publish/LocalCacheCheckerLibrary.dylib lccarm64.dylib
     - name: Upload x64 artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: macos64
         path: llc64
     - name: Upload arm64 artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: macosarm64
         path: llcarm64
     - name: Upload x64 artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: macoslib64
         path: lcc64.dylib
     - name: Upload arm64 artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: macoslibarm64
         path: lccarm64.dylib
@@ -57,9 +57,9 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Install .NET Core
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
 
@@ -80,22 +80,22 @@ jobs:
         cp LocalCacheCheckerLibrary/bin/Release/net10.0/win-x64/publish/LocalCacheCheckerLibrary.dll lcc64.dll
         cp LocalCacheCheckerLibrary/bin/Release/net10.0/win-arm64/publish/LocalCacheCheckerLibrary.dll lccarm64.dll
     - name: Upload x64 artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: windows64
         path: llc64.exe
     - name: Upload arm64 artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: windowsarm64
         path: llcarm64.exe
     - name: Upload x64 artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: windowslib64
         path: lcc64.dll
     - name: Upload arm64 artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: windowslibarm64
         path: lccarm64.dll
@@ -105,9 +105,9 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Install .NET Core
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
     - name: Publish x64 application
@@ -118,11 +118,11 @@ jobs:
       run: |
         cp src/bin/Release/net10.0/linux-x64/publish/LocalCacheChecker llc64
         cp LocalCacheCheckerLibrary/bin/Release/net10.0/linux-x64/publish/LocalCacheCheckerLibrary.so lcc64.so
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: linux64
         path: llc64
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: linuxlib64
         path: lcc64.so
@@ -130,9 +130,9 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Install .NET Core
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
     - name: Publish x64 application
@@ -143,11 +143,11 @@ jobs:
       run: |
         cp src/bin/Release/net10.0/linux-arm64/publish/LocalCacheChecker llcarm64
         cp LocalCacheCheckerLibrary/bin/Release/net10.0/linux-arm64/publish/LocalCacheCheckerLibrary.so lccarm64.so
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: linuxarm64
         path: llcarm64
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: linuxlibarm64
         path: lccarm64.so
