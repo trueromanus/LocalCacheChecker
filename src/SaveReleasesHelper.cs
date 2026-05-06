@@ -249,7 +249,7 @@ namespace LocalCacheChecker
 
             if (!allReleases.Any()) return;
 
-            var lastTimestamp = DateTimeOffset.Parse(allReleases.First().FreshAt).ToUnixTimeSeconds();
+            var lastTimestamp = DateTimeOffset.Parse(allReleases.Where(a => a.FreshAt != null).OrderByDescending(a => a.FreshAt).First().FreshAt).ToUnixTimeSeconds();
 
             var result = new List<ReleaseSaveModel>();
             var resultTorrents = new List<ReleaseTorrentSaveModel>();
