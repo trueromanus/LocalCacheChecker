@@ -214,7 +214,7 @@ namespace LocalCacheChecker
             await SaveLoadedItemsToFiles(folderToSaveCacheFiles, editedReleases, updatedTorrents, updatedEpisodes, lastTimestamp, asCache: true);
         }
 
-        static public async Task SaveFullReleases(HttpClient httpClient, string folderToSaveCacheFiles, int countOnPages, Action<int, int> callback)
+        static public async Task SaveFullReleases(HttpClient httpClient, string folderToSaveCacheFiles, int countOnPages, Action<int, int> callback, bool isCache = false)
         {
             var types = await ReadTypes(folderToSaveCacheFiles);
             var metadata = await ReadMetadata(folderToSaveCacheFiles);
@@ -335,7 +335,7 @@ namespace LocalCacheChecker
                 currentEpisodes.Where(a => oldReleasesIds.Contains(a.ReleaseId)).ToList()
             );*/
 
-            await SaveLoadedItemsToFiles(folderToSaveCacheFiles, result, resultTorrents, resultVideos, lastTimestamp, asCache: true);
+            await SaveLoadedItemsToFiles(folderToSaveCacheFiles, result, resultTorrents, resultVideos, lastTimestamp, asCache: isCache);
         }
 
         static public async Task SynchronizeAllPosters(HttpClient httpClient, string folderToSaveCacheFiles, Action<int, int> callback)

@@ -48,7 +48,7 @@ internal class Program
         if (synchronizeSchedule) await SaveRoutineHelpers.SaveSchedule(httpClient, folderToSaveCacheFiles);
         if (synchronizeFranchises) await SaveRoutineHelpers.SaveReleaseSeries(httpClient, folderToSaveCacheFiles);
         if (isSavePosters) await SynchronizeAllPosters(httpClient, folderToSaveCacheFiles, (percent, count) => { });
-        if (synchronizeFullNextVersion) await SaveFullReleases(httpClient, folderToSaveCacheFiles, 50, (_, _) => { });
+        if (synchronizeFullNextVersion) await SaveFullReleases(httpClient, folderToSaveCacheFiles, 50, (_, _) => { }, isCache: false);
     }
 
 }

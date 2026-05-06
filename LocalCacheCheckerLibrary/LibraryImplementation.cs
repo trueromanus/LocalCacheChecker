@@ -72,7 +72,8 @@ namespace LocalCacheCheckerLibrary {
                             countPages,
                             (percent, count) => {
                                 callback(percent, count);
-                            }
+                            },
+                            isCache: true
                         );
                         finalCallBack(true);
                     }
