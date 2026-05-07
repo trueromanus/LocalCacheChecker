@@ -244,7 +244,7 @@ namespace LocalCacheChecker
 
                 if (i % 2 == 0) await Task.Delay(500);
 
-                callback(i / totalPages * 100, totalPages);
+                callback((int)((double)i / (double)totalPages * 100), totalPages);
             }
 
             if (!allReleases.Any()) return;
