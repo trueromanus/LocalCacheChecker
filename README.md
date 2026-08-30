@@ -6,8 +6,10 @@ Application for create cache files from nextAPI.
 [Russian Documentation](https://github.com/trueromanus/LocalCacheChecker/wiki/Russian-Documentation)
 
 # Build Requirements
-- DotNet 8.0+
+- DotNet 10.0+
 # Build Instructions
+First you need to install [dotnet](https://dotnet.microsoft.com/en-us/download/dotnet/10.0).
+
 ```shell
 dotnet dotnet publish -r <platform-indetifier> -c Release --self-contained true src/LocalCacheChecker.csproj
 ```
