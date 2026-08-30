@@ -10,9 +10,15 @@ Application for create cache files from nextAPI.
 # Build Instructions
 First you need to install [dotnet](https://dotnet.microsoft.com/en-us/download/dotnet/10.0).
 
+How to build executable:
 ```shell
 dotnet dotnet publish -r <platform-indetifier> -c Release --self-contained true src/LocalCacheChecker.csproj
 ```
+How to build library:
+```shell
+dotnet publish -r <platform-indetifier> -c Release --self-contained true LocalCacheCheckerLibrary/LocalCacheCheckerLibrary.csproj
+```
+
 `platform-identifier` can be:
 - osx-x64 (macOS with intel processor)
 - osx-arm64 (macOS with M1+ processor)
